@@ -439,6 +439,19 @@ struct ContentView: View {
                         .offset(y: spot == 2 ? 8 : -8)
                 }
             }
+            // Swipe hint chevrons at card edges
+            .overlay(alignment: .leading) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 8, weight: .light))
+                    .foregroundColor(.secondary.opacity(0.15))
+                    .padding(.leading, 6)
+            }
+            .overlay(alignment: .trailing) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 8, weight: .light))
+                    .foregroundColor(.secondary.opacity(0.15))
+                    .padding(.trailing, 6)
+            }
             .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
             .scaleEffect(cardEntrance ? 1.0 : 0.92)
             .opacity(cardEntrance ? 1.0 : 0.0)
