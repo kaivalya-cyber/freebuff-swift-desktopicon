@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var deleteConfirmEntry: HistoryEntry? = nil
     @State private var showResetStatsConfirm = false
     @State private var showResetAllConfirm = false
+    @State private var onboardingStep: Int = 0
 
     var body: some View {
         ZStack {
@@ -28,12 +29,13 @@ struct ContentView: View {
             }
             .frame(width: 680)
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow).ignoresSafeArea())
-            .onAppear { viewModel.applyTheme() }
+                        .onAppear { viewModel.applyTheme() }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0 } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { showCheatsheet.toggle() } }.keyboardShortcut("/", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
-            Button("") { showCheatsheet = false; viewModel.showSettings = false; viewModel.showOnboarding = false; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; showResetAllConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+            Button("") { showCheatsheet = false; viewModel.showSettings = false; viewModel.showOnboarding = false; onboardingStep = 0; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; showResetAllConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { viewModel.undoRestore(); isInputFocused = true } }.keyboardShortcut("z", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { viewModel.clearChat() }.keyboardShortcut("l", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) { viewModel.resumeSession(task: last.task); isInputFocused = true } }.keyboardShortcut("r", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -210,83 +212,111 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Onboarding overlay
+    // MARK: - Onboarding overlay (guided tour)
+
+    private let onboardingSteps: [(icon: String, title: String, body: String)] = [
+        ("cpu.fill", "Welcome to Freebuff", "Your AI coding companion lives in the menu bar. Let's take a quick tour.\n\nClick Next to get started — or Skip to jump right in."),
+        ("eye.fill", "Monitor Your Agents", "When a Codebuff agent is running, the header turns green with live progress, elapsed time, and estimated completion.\n\nYou'll see your task name and a progress bar update in real-time."),
+        ("bubble.left.and.bubble.right.fill", "Chat & Prompt", "The Chat tab lets you send prompts to Codebuff. Agents respond inline — just type or drop file paths.\n\n⌘K to focus, ⌘R to resume, ⌘L to clear."),
+        ("chart.bar.fill", "Stats & History", "Track your usage across the Stats tab — sessions, credits, context fill, and a 7-day sparkline.\n\nThe History tab saves every completed session so you can resume, review diffs, and measure productivity.")
+    ]
 
     private var onboardingOverlay: some View {
         ZStack {
             Color.black.opacity(0.5).ignoresSafeArea()
             VStack(spacing: 0) {
-                // Hero
-                VStack(spacing: 12) {
-                    ZStack {
-                        Circle().fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)).frame(width: 64, height: 64)
-                        Image(systemName: "cpu.fill").font(.system(size: 28)).foregroundColor(.white)
-                    }
-                    Text("Welcome to Freebuff").font(.system(size: 20, weight: .bold))
-                    Text("Your AI coding companion lives in the menu bar.").font(.system(size: 12)).foregroundColor(.secondary)
-                }.padding(.top, 24).padding(.bottom, 20)
-
-                Divider().padding(.horizontal, 20)
-
-                // Feature highlights
-                VStack(alignment: .leading, spacing: 12) {
-                    featureRow(icon: "eye.fill", color: .blue, title: "Monitor sessions", description: "Watch your Codebuff agents run in real-time from the menu bar.")
-                    featureRow(icon: "clock.arrow.2.circlepath", color: .green, title: "Track history", description: "Every session is saved — resume tasks, see git diffs, and measure productivity.")
-                    featureRow(icon: "chart.bar.fill", color: .orange, title: "Usage stats", description: "Track prompts, responses, context fill, and estimated API credits.")
-                    featureRow(icon: "keyboard.fill", color: .purple, title: "Quick shortcuts", description: "⌘K focus, ⌘R resume, ⌘L clear, ⌘/ cheatsheet — right from the keyboard.")
-                }.padding(20)
-
-                Divider().padding(.horizontal, 20)
-
-                // CTA
-                Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.completeOnboarding()
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("Get Started").font(.system(size: 13, weight: .semibold))
-                        Image(systemName: "arrow.right").font(.system(size: 11, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 32).padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
+                // Hero icon
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 56, height: 56)
+                    Image(systemName: onboardingSteps[onboardingStep].icon)
+                        .font(.system(size: onboardingStep == 0 ? 24 : 22))
+                        .foregroundColor(.white)
                 }
-                .buttonStyle(.plain)
-                .padding(.vertical, 16)
+                .padding(.top, 24)
 
-                Text("Tip: Type your first task in the Chat tab or use the CLI.")
-                    .font(.system(size: 10)).foregroundColor(.secondary.opacity(0.6))
-                    .padding(.bottom, 8)
+                Text(onboardingSteps[onboardingStep].title)
+                    .font(.system(size: 17, weight: .bold))
+                    .padding(.top, 12)
 
-                Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.showOnboarding = false
+                Text(onboardingSteps[onboardingStep].body)
+                    .font(.system(size: 11.5))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 8)
+
+                // Step dots
+                HStack(spacing: 6) {
+                    ForEach(0..<onboardingSteps.count, id: \.self) { i in
+                        Circle()
+                            .fill(i == onboardingStep ? Color.blue : Color.secondary.opacity(0.25))
+                            .frame(width: 6, height: 6)
+                            .animation(.easeInOut(duration: 0.2), value: onboardingStep)
                     }
-                } label: {
-                    Text("Skip for now")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary.opacity(0.5))
                 }
-                .buttonStyle(.plain)
-                .padding(.bottom, 16)
+                .padding(.top, 16)
+
+                // Navigation
+                HStack(spacing: 0) {
+                    // Back button (hidden on step 0)
+                    if onboardingStep > 0 {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 }
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "chevron.left").font(.system(size: 9, weight: .semibold))
+                                Text("Back").font(.system(size: 12))
+                            }
+                            .foregroundColor(.secondary)
+                            .padding(.vertical, 8).padding(.horizontal, 14)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.06)))
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    } else {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                viewModel.showOnboarding = false
+                            }
+                        } label: {
+                            Text("Skip")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary.opacity(0.6))
+                                .padding(.vertical, 8).padding(.horizontal, 14)
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    }
+
+                    // Next / Get Started
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            if onboardingStep < onboardingSteps.count - 1 {
+                                onboardingStep += 1
+                            } else {
+                                viewModel.completeOnboarding()
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 3) {
+                            Text(onboardingStep == onboardingSteps.count - 1 ? "Get Started" : "Next")
+                                .font(.system(size: 12, weight: .semibold))
+                            Image(systemName: onboardingStep == onboardingSteps.count - 1 ? "checkmark" : "chevron.right")
+                                .font(.system(size: 9, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.vertical, 8).padding(.horizontal, 18)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 24).padding(.top, 16).padding(.bottom, 20)
             }
-            .frame(width: 360)
+            .frame(width: 340)
             .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.25), radius: 20, y: 4))
-        }
-    }
-
-    private func featureRow(icon: String, color: Color, title: String, description: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 13))
-                .foregroundColor(color)
-                .frame(width: 24, height: 24)
-                .background(RoundedRectangle(cornerRadius: 6).fill(color.opacity(0.12)))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 12, weight: .semibold))
-                Text(description).font(.system(size: 10.5)).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
-            }
         }
     }
 
