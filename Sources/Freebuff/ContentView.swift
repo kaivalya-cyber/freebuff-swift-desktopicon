@@ -205,6 +205,17 @@ struct ContentView: View {
                             .foregroundColor(.secondary).padding(.vertical, 6).frame(maxWidth: .infinity)
                             .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.06)))
                     }.buttonStyle(.plain)
+
+                    Divider()
+
+                    Button {
+                        viewModel.showSettings = false
+                        viewModel.showOnboarding = true
+                    } label: {
+                        HStack(spacing: 4) { Image(systemName: "questionmark.circle").font(.system(size: 10)); Text("Replay guided tour").font(.system(size: 11)) }
+                            .foregroundColor(.blue.opacity(0.8)).padding(.vertical, 6).frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.blue.opacity(0.08)))
+                    }.buttonStyle(.plain)
                 }.padding(16)
             }
             .frame(width: 300)
