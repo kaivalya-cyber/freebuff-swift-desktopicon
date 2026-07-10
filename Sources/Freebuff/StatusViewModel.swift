@@ -49,6 +49,7 @@ final class StatusViewModel: ObservableObject {
     // MARK: - Settings
 
     @Published var showSettings: Bool = false
+    @Published var showOnboarding: Bool = false
     @Published var costPerPrompt: Double = 0.001
     @Published var contextWindowTokens: Int = 128_000
     @Published var compactDefault: Bool = false
@@ -193,6 +194,11 @@ final class StatusViewModel: ObservableObject {
         reloadChangedFiles()
         bootstrapUsageIfNeeded()
         scheduleWeeklySummary()
+
+        // Show onboarding on first launch (no config.json yet)
+        if !FileManager.default.fileExists(atPath: configPath) {
+            showOnboarding = true
+        }
     }
 
     /// Debounce: rapid directory events get coalesced to a single async reload
@@ -1002,6 +1008,12 @@ final class StatusViewModel: ObservableObject {
         weeklySummaryEnabled = true
         applyTheme()
         saveSettings()
+    }
+
+    /// Dismiss the onboarding screen and write a default config so it never re-shows.
+    func completeOnboarding() {
+        showOnboarding = false
+        saveSettings()  // writes config.json, preventing the overlay from re-appearing
     }
 
     /// Restore last sent message to input field (⌘Z undo)

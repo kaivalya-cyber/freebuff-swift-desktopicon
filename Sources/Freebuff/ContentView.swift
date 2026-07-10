@@ -33,7 +33,7 @@ struct ContentView: View {
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { showCheatsheet.toggle() } }.keyboardShortcut("/", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
-            Button("") { showCheatsheet = false; viewModel.showSettings = false; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; showResetAllConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+            Button("") { showCheatsheet = false; viewModel.showSettings = false; viewModel.showOnboarding = false; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; showResetAllConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { viewModel.undoRestore(); isInputFocused = true } }.keyboardShortcut("z", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { viewModel.clearChat() }.keyboardShortcut("l", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) { viewModel.resumeSession(task: last.task); isInputFocused = true } }.keyboardShortcut("r", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -46,6 +46,7 @@ struct ContentView: View {
             if let entry = deleteConfirmEntry { confirmationDialog(title: "Delete session?", message: "Remove '\(entry.task)' from history? This cannot be undone.", confirm: { viewModel.deleteHistoryEntry(id: entry.id); deleteConfirmEntry = nil }, cancel: { deleteConfirmEntry = nil }) }
             if showResetStatsConfirm { confirmationDialog(title: "Reset stats?", message: "This will wipe all usage data (prompts, responses, sessions, context fill). This cannot be undone.", confirm: { viewModel.resetUsageStats(); showResetStatsConfirm = false }, cancel: { showResetStatsConfirm = false }) }
             if showResetAllConfirm { confirmationDialog(title: "Reset all data?", message: "This will wipe all history, usage stats, and current session data. This cannot be undone.", confirm: { viewModel.resetAllData(); showResetAllConfirm = false }, cancel: { showResetAllConfirm = false }) }
+            if viewModel.showOnboarding { onboardingOverlay }
         }
     }
 
@@ -206,6 +207,86 @@ struct ContentView: View {
             }
             .frame(width: 300)
             .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.2), radius: 12, y: 2))
+        }
+    }
+
+    // MARK: - Onboarding overlay
+
+    private var onboardingOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.5).ignoresSafeArea()
+            VStack(spacing: 0) {
+                // Hero
+                VStack(spacing: 12) {
+                    ZStack {
+                        Circle().fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)).frame(width: 64, height: 64)
+                        Image(systemName: "cpu.fill").font(.system(size: 28)).foregroundColor(.white)
+                    }
+                    Text("Welcome to Freebuff").font(.system(size: 20, weight: .bold))
+                    Text("Your AI coding companion lives in the menu bar.").font(.system(size: 12)).foregroundColor(.secondary)
+                }.padding(.top, 24).padding(.bottom, 20)
+
+                Divider().padding(.horizontal, 20)
+
+                // Feature highlights
+                VStack(alignment: .leading, spacing: 12) {
+                    featureRow(icon: "eye.fill", color: .blue, title: "Monitor sessions", description: "Watch your Codebuff agents run in real-time from the menu bar.")
+                    featureRow(icon: "clock.arrow.2.circlepath", color: .green, title: "Track history", description: "Every session is saved — resume tasks, see git diffs, and measure productivity.")
+                    featureRow(icon: "chart.bar.fill", color: .orange, title: "Usage stats", description: "Track prompts, responses, context fill, and estimated API credits.")
+                    featureRow(icon: "keyboard.fill", color: .purple, title: "Quick shortcuts", description: "⌘K focus, ⌘R resume, ⌘L clear, ⌘/ cheatsheet — right from the keyboard.")
+                }.padding(20)
+
+                Divider().padding(.horizontal, 20)
+
+                // CTA
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.completeOnboarding()
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("Get Started").font(.system(size: 13, weight: .semibold))
+                        Image(systemName: "arrow.right").font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 32).padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
+                }
+                .buttonStyle(.plain)
+                .padding(.vertical, 16)
+
+                Text("Tip: Type your first task in the Chat tab or use the CLI.")
+                    .font(.system(size: 10)).foregroundColor(.secondary.opacity(0.6))
+                    .padding(.bottom, 8)
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.showOnboarding = false
+                    }
+                } label: {
+                    Text("Skip for now")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary.opacity(0.5))
+                }
+                .buttonStyle(.plain)
+                .padding(.bottom, 16)
+            }
+            .frame(width: 360)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.25), radius: 20, y: 4))
+        }
+    }
+
+    private func featureRow(icon: String, color: Color, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 13))
+                .foregroundColor(color)
+                .frame(width: 24, height: 24)
+                .background(RoundedRectangle(cornerRadius: 6).fill(color.opacity(0.12)))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.system(size: 12, weight: .semibold))
+                Text(description).font(.system(size: 10.5)).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
