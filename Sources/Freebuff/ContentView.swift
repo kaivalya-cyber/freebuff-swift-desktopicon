@@ -273,11 +273,11 @@ struct ContentView: View {
                 .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { viewModel.showOnboarding = false } }
 
             // Spotlight flash on step change
-            RoundedRectangle(cornerRadius: spot == 3 ? 8 : spot == 0 ? 10 : 10)
-                .fill(Color.white.opacity(0.08))
+            RoundedRectangle(cornerRadius: spot == 3 ? 8 : 10)
+                .fill(Color.white)
                 .frame(width: 656, height: spot == 1 ? 78 : spot == 2 ? 42 : spot == 3 ? 34 : 0)
                 .padding(spot == 1 ? .top : spot == 2 ? .bottom : .top, spot == 1 ? 8 : spot == 2 ? 4 : spot == 3 ? 20 : 0)
-                .opacity(spotlightFlash && spot != 0 ? 0.5 : 0)
+                .opacity(spotlightFlash && spot != 0 ? 0.10 : 0)
                 .animation(.easeOut(duration: 0.15), value: spotlightFlash)
 
             // Spotlight border rendered ABOVE the dark overlay (pulsing glow)
