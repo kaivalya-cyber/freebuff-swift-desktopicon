@@ -348,6 +348,12 @@ struct ContentView: View {
             }
             .frame(width: 340)
             .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.3), radius: 24, y: 6))
+            .overlay(alignment: spot == 1 || spot == 3 ? .top : .bottom) {
+                if spot == 1 || spot == 2 || spot == 3 {
+                    pointerArrow(direction: spot == 2 ? .down : .up)
+                        .offset(y: spot == 2 ? 8 : -8)
+                }
+            }
             .padding(spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : [], spot == 1 || spot == 2 || spot == 3 ? 20 : 0)
         }
     }
@@ -393,6 +399,28 @@ struct ContentView: View {
             Text(description).font(.system(size: 11)).foregroundColor(.secondary)
             Spacer()
         }
+    }
+
+    // MARK: - Pointer arrow for onboarding spotlight
+
+    private enum ArrowDirection { case up, down }
+
+    private func pointerArrow(direction: ArrowDirection) -> some View {
+        Path { p in
+            let w: CGFloat = 16, h: CGFloat = 8
+            if direction == .up {
+                p.move(to: CGPoint(x: w / 2, y: 0))
+                p.addLine(to: CGPoint(x: w, y: h))
+                p.addLine(to: CGPoint(x: 0, y: h))
+            } else {
+                p.move(to: CGPoint(x: w / 2, y: h))
+                p.addLine(to: CGPoint(x: w, y: 0))
+                p.addLine(to: CGPoint(x: 0, y: 0))
+            }
+            p.closeSubpath()
+        }
+        .fill(Color(nsColor: .windowBackgroundColor))
+        .frame(width: 16, height: 8)
     }
 
     // MARK: - Confirmation dialog
