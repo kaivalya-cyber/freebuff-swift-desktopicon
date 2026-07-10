@@ -1017,6 +1017,12 @@ final class StatusViewModel: ObservableObject {
         selectedTab = 0
     }
 
+    /// Wipe usage.json and reset in-memory stats to zero.
+    func resetUsageStats() {
+        try? FileManager.default.removeItem(atPath: usagePath)
+        usageStats = UsageStats()
+    }
+
     /// Delete a single history entry from history.json by ID.
     func deleteHistoryEntry(id: String) {
         let path = historyPath

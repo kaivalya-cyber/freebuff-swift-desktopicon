@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var hoveredSparklineIndex: Int? = nil
     @State private var isDropTargeted: Bool = false
     @State private var deleteConfirmEntry: HistoryEntry? = nil
+    @State private var showResetStatsConfirm = false
 
     var body: some View {
         ZStack {
@@ -31,7 +32,7 @@ struct ContentView: View {
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { showCheatsheet.toggle() } }.keyboardShortcut("/", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
-            Button("") { showCheatsheet = false; viewModel.showSettings = false; showClearConfirm = false; showCopyAllConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+            Button("") { showCheatsheet = false; viewModel.showSettings = false; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { viewModel.undoRestore(); isInputFocused = true } }.keyboardShortcut("z", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
 
             if viewModel.showSettings { settingsOverlay }
@@ -40,6 +41,7 @@ struct ContentView: View {
             if showCopyAllConfirm { confirmationDialog(title: "Copy all?", message: "Copy the entire conversation as formatted text to clipboard.", confirm: { copyAllConversation(); showCopyAllConfirm = false }, cancel: { showCopyAllConfirm = false }) }
             if showCSVExportConfirm { confirmationDialog(title: "Export CSV?", message: "Save last 7 days of usage data as a CSV file.", confirm: { exportCSV(); showCSVExportConfirm = false }, cancel: { showCSVExportConfirm = false }) }
             if let entry = deleteConfirmEntry { confirmationDialog(title: "Delete session?", message: "Remove '\(entry.task)' from history? This cannot be undone.", confirm: { viewModel.deleteHistoryEntry(id: entry.id); deleteConfirmEntry = nil }, cancel: { deleteConfirmEntry = nil }) }
+            if showResetStatsConfirm { confirmationDialog(title: "Reset stats?", message: "This will wipe all usage data (prompts, responses, sessions, context fill). This cannot be undone.", confirm: { viewModel.resetUsageStats(); showResetStatsConfirm = false }, cancel: { showResetStatsConfirm = false }) }
         }
     }
 
@@ -179,6 +181,12 @@ struct ContentView: View {
 
                     Divider()
 
+                    Button { showResetStatsConfirm = true } label: {
+                        HStack(spacing: 4) { Image(systemName: "trash").font(.system(size: 10)); Text("Reset usage stats").font(.system(size: 11)) }
+                            .foregroundColor(.red.opacity(0.7)).padding(.vertical, 6).frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.red.opacity(0.08)))
+                    }.buttonStyle(.plain)
+
                     Button { viewModel.resetSettings() } label: {
                         HStack(spacing: 4) { Image(systemName: "arrow.counterclockwise").font(.system(size: 10)); Text("Reset to defaults").font(.system(size: 11)) }
                             .foregroundColor(.secondary).padding(.vertical, 6).frame(maxWidth: .infinity)
@@ -244,7 +252,7 @@ struct ContentView: View {
                 HStack(spacing: 0) {
                     Button { cancel() } label: { Text("Cancel").font(.system(size: 12, weight: .medium)).foregroundColor(.secondary).frame(maxWidth: .infinity).padding(.vertical, 10) }.buttonStyle(.plain)
                     Divider()
-                    Button { confirm() } label: { Text(verbatim: title.hasPrefix("Clear") ? "Clear" : title.hasPrefix("Delete") ? "Delete" : title.hasPrefix("Export") ? "Export" : "Copy").font(.system(size: 12, weight: .semibold)).foregroundColor(title.hasPrefix("Clear") || title.hasPrefix("Delete") ? .red : .blue).frame(maxWidth: .infinity).padding(.vertical, 10) }.buttonStyle(.plain)
+                    Button { confirm() } label: { Text(verbatim: title.hasPrefix("Clear") ? "Clear" : title.hasPrefix("Delete") ? "Delete" : title.hasPrefix("Export") ? "Export" : title.hasPrefix("Reset") ? "Reset" : "Copy").font(.system(size: 12, weight: .semibold)).foregroundColor(title.hasPrefix("Clear") || title.hasPrefix("Delete") || title.hasPrefix("Reset") ? .red : .blue).frame(maxWidth: .infinity).padding(.vertical, 10) }.buttonStyle(.plain)
                 }
             }
             .frame(width: 260)
