@@ -340,7 +340,7 @@ struct ContentView: View {
 
                 Text(onboardingSteps[onboardingStep].body)
                     .font(.system(size: 11.5))
-                    .foregroundColor(.secondary.opacity(bodyTextPulse ? 0.9 : 0.7))
+                    .foregroundColor(.secondary.opacity(bodyTextPulse ? 1.0 : 0.75))
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
                     .padding(.horizontal, 24)
