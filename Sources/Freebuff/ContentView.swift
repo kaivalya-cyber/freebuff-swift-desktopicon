@@ -41,7 +41,7 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
             .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true; chevronBounce = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false; chevronBounce = false; getStartedPulse = false } }
-            .onChange(of: onboardingStep) { step in if step == onboardingSteps.count - 1 { getStartedPulse = true } }
+            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1 }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
