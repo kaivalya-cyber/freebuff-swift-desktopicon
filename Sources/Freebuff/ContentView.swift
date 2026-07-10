@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var getStartedPulse: Bool = false
     @State private var checkmarkSpring: Bool = false
     @State private var cardEntrance: Bool = false
+    @State private var spotlightFlash: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -40,7 +41,7 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
             .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { cardEntrance = true } } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false; cardEntrance = false } }
-            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false } }
+            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false }; spotlightFlash = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { spotlightFlash = false } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -270,6 +271,16 @@ struct ContentView: View {
         return ZStack(alignment: spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : .center) {
             Color.black.opacity(0.5).ignoresSafeArea()
                 .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { viewModel.showOnboarding = false } }
+
+            // Spotlight flash on step change
+            if spotlightFlash && spot != 0 {
+                RoundedRectangle(cornerRadius: spot == 3 ? 8 : 10)
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 656, height: spot == 1 ? 78 : spot == 2 ? 42 : 34)
+                    .padding(spot == 1 ? .top : spot == 2 ? .bottom : .top, spot == 1 ? 8 : spot == 2 ? 4 : 20)
+                    .transition(.opacity)
+                    .animation(.easeOut(duration: 0.3), value: spotlightFlash)
+            }
 
             // Spotlight border rendered ABOVE the dark overlay (pulsing glow)
             if spot == 1 {
