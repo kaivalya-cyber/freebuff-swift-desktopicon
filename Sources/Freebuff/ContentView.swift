@@ -446,6 +446,21 @@ struct ContentView: View {
             .animation(.spring(response: 0.45, dampingFraction: 0.75), value: cardEntrance)
             .id(onboardingStep)
             .padding(spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : [], spot == 1 || spot == 2 || spot == 3 ? 20 : 0)
+            .gesture(DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                .onEnded { value in
+                    if abs(value.translation.width) > abs(value.translation.height) {
+                        if value.translation.width < -40 && onboardingStep < onboardingSteps.count - 1 {
+                            NSSound(named: "Pop")?.play()
+                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+                            withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 }
+                        } else if value.translation.width > 40 && onboardingStep > 0 {
+                            NSSound(named: "Pop")?.play()
+                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+                            withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 }
+                        }
+                    }
+                }
+            )
         }
     }
 
