@@ -138,7 +138,7 @@ final class StatusViewModel: ObservableObject {
 
     /// Auto-complete threshold: if a session hasn't been updated in this many
     /// seconds, force-complete it (CLI likely crashed or lost connection).
-    private let autoCompleteTimeout: TimeInterval = 900  // 15 minutes
+    private let autoCompleteTimeout: TimeInterval = 300  // 5 minutes
 
     func startWatching() {
         ensureDirectoryExists()
