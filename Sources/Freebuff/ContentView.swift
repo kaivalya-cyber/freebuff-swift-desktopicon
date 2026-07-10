@@ -458,7 +458,7 @@ struct ContentView: View {
     // MARK: - Header
 
     @ViewBuilder private var headerSection: some View {
-        HStack(alignment: .top) { if let status = viewModel.currentStatus, viewModel.isActive { activeHeader(status: status) } else { idleHeader }; Spacer(); Button { withAnimation(.easeInOut(duration: 0.2)) { viewModel.showSettings = true } } label: { Image(systemName: "gearshape.fill").font(.system(size: 13)).foregroundColor(.secondary.opacity(0.5)) }.buttonStyle(.plain).padding(.top, 2) }
+        HStack(alignment: .top) { if let status = viewModel.currentStatus, viewModel.isActive { activeHeader(status: status) } else { idleHeader }; Spacer(); Button { let next: String? = viewModel.overrideTheme == "dark" ? "light" : viewModel.overrideTheme == "light" ? nil : "dark"; viewModel.overrideTheme = next; viewModel.applyTheme(); viewModel.saveSettings() } label: { Image(systemName: viewModel.overrideTheme == "dark" ? "moon.fill" : viewModel.overrideTheme == "light" ? "sun.max.fill" : "circle.lefthalf.filled").font(.system(size: 13)).foregroundColor(.secondary.opacity(0.5)) }.buttonStyle(.plain).help("Toggle theme").padding(.top, 2).padding(.trailing, 2); Button { withAnimation(.easeInOut(duration: 0.2)) { viewModel.showSettings = true } } label: { Image(systemName: "gearshape.fill").font(.system(size: 13)).foregroundColor(.secondary.opacity(0.5)) }.buttonStyle(.plain).padding(.top, 2) }
     }
     private func activeHeader(status: StatusData) -> some View {
         VStack(alignment: .leading, spacing: 8) {
