@@ -53,8 +53,9 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         newSessionItem.target = self
         menu.addItem(newSessionItem)
 
-        if viewModel.fullHistory.first(where: { $0.status == "completed" }) != nil {
-            let resumeItem = NSMenuItem(title: "Resume Last Session", action: #selector(resumeLastSession), keyEquivalent: "r")
+        if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) {
+            let taskPreview = last.task.count > 40 ? String(last.task.prefix(40)) + "…" : last.task
+            let resumeItem = NSMenuItem(title: "Resume: \(taskPreview)", action: #selector(resumeLastSession), keyEquivalent: "r")
             resumeItem.keyEquivalentModifierMask = .command
             resumeItem.target = self
             menu.addItem(resumeItem)
