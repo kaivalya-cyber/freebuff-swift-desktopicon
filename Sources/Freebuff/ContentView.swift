@@ -35,7 +35,7 @@ struct ContentView: View {
             }
             .frame(width: 680)
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow).ignoresSafeArea())
-            .blur(radius: viewModel.showOnboarding ? 4 : 0)
+            .blur(radius: viewModel.showOnboarding ? 2.5 : 0)
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
             .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false } }
