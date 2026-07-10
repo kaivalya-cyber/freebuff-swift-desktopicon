@@ -306,13 +306,20 @@ struct ContentView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 8)
 
+                // Step progress indicator
+                Text("Step \(onboardingStep + 1) of \(onboardingSteps.count)")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.secondary.opacity(0.5))
+                    .padding(.top, 14)
+
                 // Step dots
                 HStack(spacing: 6) {
                     ForEach(0..<onboardingSteps.count, id: \.self) { i in
                         Circle()
                             .fill(i == onboardingStep ? Color.blue : Color.secondary.opacity(0.25))
                             .frame(width: 6, height: 6)
-                            .animation(.easeInOut(duration: 0.2), value: onboardingStep)
+                            .scaleEffect(i == onboardingStep ? 1.3 : 1.0)
+                            .animation(.easeInOut(duration: 0.3), value: onboardingStep)
                             .help(onboardingSteps[i].title)
                     }
                 }
@@ -345,6 +352,11 @@ struct ContentView: View {
                             .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.06)))
                         }
                         .buttonStyle(.plain)
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) { viewModel.showOnboarding = false }
+                        } label: {
+                            Text("Skip").font(.system(size: 10)).foregroundColor(.secondary.opacity(0.3))
+                        }.buttonStyle(.plain).padding(.horizontal, 8)
                         Spacer()
                     } else {
                         Button {
