@@ -77,12 +77,17 @@ final class StatusViewModel: ObservableObject {
 
     /// Live context fill percentage that includes estimated chars from the
     /// currently running session, so the bar fills up in real-time.
+    /// Uses max(base, estimate) to prevent the bar from shrinking when a
+    /// session completes.
     var liveContextFillPercent: Double {
-        var chars = usageStats.totalPromptChars + usageStats.totalResponseChars
+        let baseChars = usageStats.totalPromptChars + usageStats.totalResponseChars
+        var chars = baseChars
         if let s = currentStatus, s.isRunning, let start = s.startedDate {
             let elapsed = Date().timeIntervalSince(start)
-            // Same estimation as recordCompletedSession
-            chars += max(200, Int(elapsed) * 5) + max(500, Int(elapsed) * 15)
+            // Mirror recordCompletedSession's minimum allocation
+            let estimatedSessionChars = max(200, Int(elapsed) * 5) + max(500, Int(elapsed) * 15)
+            // Use max so the bar never shrinks before recordCompletedSession fills in deltas
+            chars = max(baseChars, estimatedSessionChars)
         }
         let tokens = Double(chars) / 4.0
         return min(100.0, (tokens / Double(max(1, contextWindowTokens))) * 100.0)
@@ -92,7 +97,7 @@ final class StatusViewModel: ObservableObject {
     var liveCreditsString: String {
         var prompts = usageStats.totalPrompts
         if currentStatus?.isRunning == true { prompts += 1 }
-        let credits = Double(prompts) * 0.001
+        let credits = Double(prompts) * costPerPrompt
         if credits < 0.01 { return "<$0.01" }
         return String(format: "$%.2f", credits)
     }

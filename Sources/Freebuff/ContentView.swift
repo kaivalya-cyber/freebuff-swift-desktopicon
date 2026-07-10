@@ -732,7 +732,7 @@ struct ContentView: View {
                 statsRow(label: "Sessions", value: "\(viewModel.usageStats.totalSessions)"); statsRow(label: "Total time", value: viewModel.liveTotalTimeString); statsRow(label: "Today", value: "\(viewModel.usageStats.todaySessions) sessions")
             }
             statsCard(icon: "flame.fill", iconColor: .orange, title: "API Credits Burnt") {
-                statsRow(label: "Estimated cost", value: viewModel.liveCreditsString); statsRow(label: "This month", value: viewModel.usageStats.thisMonthCreditsString); statsRow(label: "Prompts", value: "\(viewModel.usageStats.totalPrompts)"); statsRow(label: "Responses", value: "\(viewModel.usageStats.totalResponses)"); statsRow(label: "Today", value: "\(viewModel.usageStats.todayPrompts) prompts")
+                statsRow(label: "Estimated cost", value: viewModel.liveCreditsString); statsRow(label: "This month", value: viewModel.usageStats.thisMonthCreditsString(costPerPrompt: viewModel.costPerPrompt)); statsRow(label: "Prompts", value: "\(viewModel.usageStats.totalPrompts)"); statsRow(label: "Responses", value: "\(viewModel.usageStats.totalResponses)"); statsRow(label: "Today", value: "\(viewModel.usageStats.todayPrompts) prompts")
             }
             statsCard(icon: "rectangle.stack.fill", iconColor: .purple, title: "Context Filled Up") { contextFillContent }
         }

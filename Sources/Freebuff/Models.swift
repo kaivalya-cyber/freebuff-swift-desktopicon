@@ -229,17 +229,18 @@ struct UsageStats: Codable, Equatable {
 
     // MARK: - Derived: credits & context
 
-    /// Estimated API credits burnt (prompts × approx token cost)
-    var estimatedCredits: Double {
-        Double(totalPrompts) * 0.001
+    /// Estimated API credits burnt (prompts × cost per prompt)
+    func estimatedCredits(costPerPrompt: Double = 0.001) -> Double {
+        Double(totalPrompts) * costPerPrompt
     }
 
     /// Formatted credits string
-    var creditsString: String {
-        if estimatedCredits < 0.01 {
+    func creditsString(costPerPrompt: Double = 0.001) -> String {
+        let credits = estimatedCredits(costPerPrompt: costPerPrompt)
+        if credits < 0.01 {
             return "<$0.01"
         }
-        return String(format: "$%.2f", estimatedCredits)
+        return String(format: "$%.2f", credits)
     }
 
     // MARK: - This month
@@ -274,16 +275,17 @@ struct UsageStats: Codable, Equatable {
     }
 
     /// This month's estimated credits
-    var thisMonthCredits: Double {
-        Double(thisMonthPrompts) * 0.001
+    func thisMonthCredits(costPerPrompt: Double = 0.001) -> Double {
+        Double(thisMonthPrompts) * costPerPrompt
     }
 
     /// Formatted this-month credits string
-    var thisMonthCreditsString: String {
-        if thisMonthCredits < 0.01 {
+    func thisMonthCreditsString(costPerPrompt: Double = 0.001) -> String {
+        let credits = thisMonthCredits(costPerPrompt: costPerPrompt)
+        if credits < 0.01 {
             return "<$0.01"
         }
-        return String(format: "$%.2f", thisMonthCredits)
+        return String(format: "$%.2f", credits)
     }
 
     /// Total agent time formatted
