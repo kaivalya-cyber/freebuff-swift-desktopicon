@@ -35,6 +35,7 @@ struct ContentView: View {
             Button("") { if !isInputFocused { showCheatsheet.toggle() } }.keyboardShortcut("/", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { showCheatsheet = false; viewModel.showSettings = false; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; showResetAllConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { viewModel.undoRestore(); isInputFocused = true } }.keyboardShortcut("z", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+            Button("") { viewModel.clearChat() }.keyboardShortcut("l", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) { viewModel.resumeSession(task: last.task); isInputFocused = true } }.keyboardShortcut("r", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
 
             if viewModel.showSettings { settingsOverlay }
@@ -229,6 +230,7 @@ struct ContentView: View {
                 VStack(spacing: 10) {
                     shortcutRow(keys: "⌘K", description: "Focus chat input")
                     shortcutRow(keys: "⌘R", description: "Resume last session")
+                    shortcutRow(keys: "⌘L", description: "Clear chat")
                     shortcutRow(keys: "⌘Z", description: "Restore last sent message")
                     shortcutRow(keys: "⌘/", description: "Show this cheatsheet")
                     shortcutRow(keys: "⌘Return", description: "Submit prompt")
