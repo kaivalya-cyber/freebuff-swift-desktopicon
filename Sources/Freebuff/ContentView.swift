@@ -34,7 +34,7 @@ struct ContentView: View {
             .frame(width: 680)
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow).ignoresSafeArea())
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true } else { spotlightPulse = false } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
