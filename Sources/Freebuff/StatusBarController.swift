@@ -53,6 +53,22 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         newSessionItem.target = self
         menu.addItem(newSessionItem)
 
+        if viewModel.fullHistory.first(where: { $0.status == "completed" }) != nil {
+            let resumeItem = NSMenuItem(title: "Resume Last Session", action: #selector(resumeLastSession), keyEquivalent: "r")
+            resumeItem.keyEquivalentModifierMask = .command
+            resumeItem.target = self
+            menu.addItem(resumeItem)
+        }
+
+        menu.addItem(NSMenuItem.separator())
+
+        if !viewModel.messages.isEmpty {
+            let clearChatItem = NSMenuItem(title: "Clear Chat", action: #selector(clearChatFromMenu), keyEquivalent: "l")
+            clearChatItem.keyEquivalentModifierMask = .command
+            clearChatItem.target = self
+            menu.addItem(clearChatItem)
+        }
+
         menu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(title: "Quit Freebuff", action: #selector(quitApp), keyEquivalent: "q")
@@ -114,6 +130,16 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         openPopover()
         viewModel.selectedTab = 0
         // Focus will be handled by the user pressing ⌘K or clicking
+    }
+
+    @objc private func resumeLastSession() {
+        guard let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) else { return }
+        openPopover()
+        viewModel.resumeSession(task: last.task)
+    }
+
+    @objc private func clearChatFromMenu() {
+        viewModel.clearChat()
     }
 
     @objc private func quitApp() {
