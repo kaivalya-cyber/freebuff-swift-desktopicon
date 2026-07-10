@@ -333,9 +333,10 @@ struct ContentView: View {
                 HStack(spacing: 6) {
                     ForEach(0..<onboardingSteps.count, id: \.self) { i in
                         Circle()
-                            .fill(i == onboardingStep ? Color.blue : Color.secondary.opacity(0.25))
+                            .fill(i <= onboardingStep ? Color.blue.opacity(i == onboardingStep ? 1.0 : 0.4) : Color.secondary.opacity(0.25))
                             .frame(width: 6, height: 6)
                             .scaleEffect(i == onboardingStep ? 1.3 : 1.0)
+                            .shadow(color: i == onboardingStep ? Color.blue.opacity(0.5) : .clear, radius: i == onboardingStep ? 4 : 0)
                             .animation(.easeInOut(duration: 0.3), value: onboardingStep)
                             .help(onboardingSteps[i].title)
                     }
