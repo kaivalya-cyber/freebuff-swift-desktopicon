@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var isDropTargeted: Bool = false
     @State private var deleteConfirmEntry: HistoryEntry? = nil
     @State private var showResetStatsConfirm = false
+    @State private var showResetAllConfirm = false
 
     var body: some View {
         ZStack {
@@ -32,7 +33,7 @@ struct ContentView: View {
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { showCheatsheet.toggle() } }.keyboardShortcut("/", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
-            Button("") { showCheatsheet = false; viewModel.showSettings = false; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+            Button("") { showCheatsheet = false; viewModel.showSettings = false; showClearConfirm = false; showCopyAllConfirm = false; showResetStatsConfirm = false; showResetAllConfirm = false; deleteConfirmEntry = nil }.keyboardShortcut(.escape).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if !isInputFocused { viewModel.undoRestore(); isInputFocused = true } }.keyboardShortcut("z", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
 
             if viewModel.showSettings { settingsOverlay }
@@ -42,6 +43,7 @@ struct ContentView: View {
             if showCSVExportConfirm { confirmationDialog(title: "Export CSV?", message: "Save last 7 days of usage data as a CSV file.", confirm: { exportCSV(); showCSVExportConfirm = false }, cancel: { showCSVExportConfirm = false }) }
             if let entry = deleteConfirmEntry { confirmationDialog(title: "Delete session?", message: "Remove '\(entry.task)' from history? This cannot be undone.", confirm: { viewModel.deleteHistoryEntry(id: entry.id); deleteConfirmEntry = nil }, cancel: { deleteConfirmEntry = nil }) }
             if showResetStatsConfirm { confirmationDialog(title: "Reset stats?", message: "This will wipe all usage data (prompts, responses, sessions, context fill). This cannot be undone.", confirm: { viewModel.resetUsageStats(); showResetStatsConfirm = false }, cancel: { showResetStatsConfirm = false }) }
+            if showResetAllConfirm { confirmationDialog(title: "Reset all data?", message: "This will wipe all history, usage stats, and current session data. This cannot be undone.", confirm: { viewModel.resetAllData(); showResetAllConfirm = false }, cancel: { showResetAllConfirm = false }) }
         }
     }
 
@@ -185,6 +187,12 @@ struct ContentView: View {
                         HStack(spacing: 4) { Image(systemName: "trash").font(.system(size: 10)); Text("Reset usage stats").font(.system(size: 11)) }
                             .foregroundColor(.red.opacity(0.7)).padding(.vertical, 6).frame(maxWidth: .infinity)
                             .background(RoundedRectangle(cornerRadius: 6).fill(Color.red.opacity(0.08)))
+                    }.buttonStyle(.plain)
+
+                    Button { showResetAllConfirm = true } label: {
+                        HStack(spacing: 4) { Image(systemName: "trash.fill").font(.system(size: 10)); Text("Reset all data").font(.system(size: 11)) }
+                            .foregroundColor(.red).padding(.vertical, 6).frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.red.opacity(0.12)))
                     }.buttonStyle(.plain)
 
                     Button { viewModel.resetSettings() } label: {

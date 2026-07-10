@@ -1023,6 +1023,22 @@ final class StatusViewModel: ObservableObject {
         usageStats = UsageStats()
     }
 
+    /// Wipe all data: history.json, usage.json, status.json, and in-memory state.
+    func resetAllData() {
+        try? FileManager.default.removeItem(atPath: historyPath)
+        try? FileManager.default.removeItem(atPath: usagePath)
+        try? FileManager.default.removeItem(atPath: statusPath)
+        usageStats = UsageStats()
+        fullHistory = []
+        history = []
+        currentStatus = nil
+        setIfChanged(&statusText, "Idle")
+        setIfChanged(&animatedProgress, 0.0)
+        lastSeenTask = nil
+        lastCompletedTaskStartedAt = nil
+        isStale = false
+    }
+
     /// Delete a single history entry from history.json by ID.
     func deleteHistoryEntry(id: String) {
         let path = historyPath
