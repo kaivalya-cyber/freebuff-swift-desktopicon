@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var spotlightFlash: Bool = false
     @State private var stepLabelBounce: Bool = false
     @State private var bodyTextPulse: Bool = false
+    @State private var completeSparkles: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -42,7 +43,7 @@ struct ContentView: View {
             .blur(radius: viewModel.showOnboarding ? 2.5 : 0)
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { cardEntrance = true } } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false; cardEntrance = false } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { cardEntrance = true } } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false; cardEntrance = false; completeSparkles = false } }
             .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false }; spotlightFlash = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { spotlightFlash = false }; stepLabelBounce = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { stepLabelBounce = false }; bodyTextPulse = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { bodyTextPulse = false } }
 
             // Keyboard shortcuts (invisible buttons)
@@ -418,6 +419,7 @@ struct ContentView: View {
                     }
 
                     Button {
+                        if onboardingStep == onboardingSteps.count - 1 { completeSparkles = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { completeSparkles = false } }
                         navigateOnboarding(by: 1)
                     } label: {
                         HStack(spacing: 3) {
@@ -477,6 +479,24 @@ struct ContentView: View {
             .animation(.spring(response: 0.45, dampingFraction: 0.75), value: cardEntrance)
             .id(onboardingStep)
             .padding(spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : [], spot == 1 || spot == 2 || spot == 3 ? 20 : 0)
+            // Sparkle burst on completion
+            .overlay {
+                if completeSparkles {
+                    ZStack {
+                        ForEach(0..<8, id: \.self) { i in
+                            let angle = Double(i) / 8 * .pi * 2
+                            let dx = cos(angle) * 60
+                            let dy = sin(angle) * 60
+                            Circle()
+                                .fill([Color.blue, .purple, .pink, .cyan][i % 4].opacity(0.6))
+                                .frame(width: 5, height: 5)
+                                .offset(x: completeSparkles ? dx : 0, y: completeSparkles ? dy : 0)
+                                .opacity(completeSparkles ? 0 : 1)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(Double(i) * 0.03), value: completeSparkles)
+                        }
+                    }
+                }
+            }
             .gesture(DragGesture(minimumDistance: 20, coordinateSpace: .local)
                 .onEnded { value in
                     if abs(value.translation.width) > abs(value.translation.height) {
