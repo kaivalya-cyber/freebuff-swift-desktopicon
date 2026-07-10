@@ -478,6 +478,7 @@ struct ContentView: View {
                     Spacer()
                     Button {
                         viewModel.resumeSession(task: last.task)
+                        isInputFocused = true
                     } label: {
                         HStack(spacing: 3) {
                             Image(systemName: "arrow.clockwise").font(.system(size: 9, weight: .semibold))
