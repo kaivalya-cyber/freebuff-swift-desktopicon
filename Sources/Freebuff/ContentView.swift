@@ -252,10 +252,10 @@ struct ContentView: View {
 
     private let onboardingSteps: [(icon: String, title: String, body: String, spot: Int)] = [
         // spot: 0=center, 1=header, 2=input, 3=tabs
-        ("cpu.fill", "Welcome to Freebuff", "Your AI coding companion lives in the menu bar. Let's take a quick tour.\n\nClick Next to get started — or Skip to jump right in.", 0),
-        ("eye.fill", "Monitor Your Agents", "When a Codebuff agent is running, the header turns green with live progress, elapsed time, and estimated completion.\n\nYou'll see your task name and a progress bar update in real-time.", 1),
+        ("cpu.fill", "Welcome to Freebuff", "Your AI coding companion lives in the menu bar. Let's take a quick tour.\n\nClick Next to get started — or Skip to jump right in.\n\n← → arrow keys or Esc to navigate.", 0),
+        ("eye.fill", "Monitor Your Agents", "When a Codebuff agent is running, the header turns green with live progress, elapsed time, and estimated completion.\n\nYou'll see your task name and a progress bar update in real-time.\n\n⌘/ to view all shortcuts anytime.", 1),
         ("bubble.left.and.bubble.right.fill", "Chat & Prompt", "The Chat tab lets you send prompts to Codebuff. Agents respond inline — just type or drop file paths.\n\n⌘K to focus, ⌘R to resume, ⌘L to clear.", 2),
-        ("chart.bar.fill", "Stats & History", "Track your usage across the Stats tab — sessions, credits, context fill, and a 7-day sparkline.\n\nThe History tab saves every completed session so you can resume, review diffs, and measure productivity.", 3)
+        ("chart.bar.fill", "Stats & History", "Track your usage across the Stats tab — sessions, credits, context fill, and a 7-day sparkline.\n\nThe History tab saves every completed session so you can resume, review diffs, and measure productivity.\n\n⌘K to focus chat, ⌘/ for all shortcuts.", 3)
     ]
 
     private var onboardingOverlay: some View {
