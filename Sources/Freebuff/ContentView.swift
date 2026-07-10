@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var chevronBounce: Bool = false
     @State private var getStartedPulse: Bool = false
     @State private var cardGlow: Bool = false
+    @State private var checkmarkSpring: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -41,8 +42,8 @@ struct ContentView: View {
             .blur(radius: viewModel.showOnboarding ? 2.5 : 0)
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true; chevronBounce = true; cardGlow = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false; chevronBounce = false; getStartedPulse = false; cardGlow = false } }
-            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now) } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true; chevronBounce = true; cardGlow = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false; chevronBounce = false; getStartedPulse = false; cardGlow = false; checkmarkSpring = false } }
+            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); checkmarkSpring = true } else { checkmarkSpring = false } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -413,6 +414,8 @@ struct ContentView: View {
                                 .font(.system(size: 12, weight: .semibold))
                             Image(systemName: onboardingStep == onboardingSteps.count - 1 ? "checkmark" : "chevron.right")
                                 .font(.system(size: 9, weight: .semibold))
+                                .scaleEffect(onboardingStep == onboardingSteps.count - 1 ? (checkmarkSpring ? 1.0 : 0.01) : 1.0)
+                                .animation(onboardingStep == onboardingSteps.count - 1 ? .spring(response: 0.4, dampingFraction: 0.6) : .default, value: checkmarkSpring)
                                 .offset(x: onboardingStep < onboardingSteps.count - 1 && chevronBounce ? 3 : 0)
                                 .animation(onboardingStep < onboardingSteps.count - 1 ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true) : .default, value: chevronBounce)
                         }
