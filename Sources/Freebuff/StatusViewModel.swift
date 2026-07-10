@@ -50,6 +50,7 @@ final class StatusViewModel: ObservableObject {
 
     @Published var showSettings: Bool = false
     @Published var showOnboarding: Bool = false
+    @Published var showChangelog: Bool = false
     @Published var costPerPrompt: Double = 0.001
     @Published var contextWindowTokens: Int = 128_000
     @Published var compactDefault: Bool = false
@@ -1085,7 +1086,6 @@ final class StatusViewModel: ObservableObject {
     func loadSettings() {
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: configPath)) else { return }
         let decoder = JSONDecoder()
-        // Try new format with string values first
         struct SettingsPayload: Codable {
             var costPerPrompt: Double?
             var contextWindowTokens: Double?
@@ -1094,6 +1094,7 @@ final class StatusViewModel: ObservableObject {
             var notificationsEnabled: Double?
             var notificationSound: String?
             var weeklySummaryEnabled: Double?
+            var lastSeenVersion: String?
         }
         if let payload = try? decoder.decode(SettingsPayload.self, from: data) {
             if let v = payload.costPerPrompt { costPerPrompt = v }
@@ -1103,14 +1104,28 @@ final class StatusViewModel: ObservableObject {
             if let v = payload.notificationsEnabled { notificationsEnabled = v != 0 }
             if let v = payload.notificationSound, !v.isEmpty { notificationSound = v }
             if let v = payload.weeklySummaryEnabled { weeklySummaryEnabled = v != 0 }
+            // Show changelog if version changed (but not on first launch — onboarding handles that)
+            if let seen = payload.lastSeenVersion, seen != currentAppVersion, showOnboarding == false {
+                showChangelog = true
+            }
         } else {
-            // Legacy format: [String: Double] only
             guard let dict = try? decoder.decode([String: Double].self, from: data) else { return }
             if let v = dict["costPerPrompt"] { costPerPrompt = v }
             if let v = dict["contextWindowTokens"] { contextWindowTokens = Int(v) }
             if let v = dict["compactDefault"] { compactDefault = v != 0; compactMode = compactDefault }
         }
         applyTheme()
+    }
+
+    /// Current app version from Info.plist
+    private var currentAppVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    /// Dismiss changelog and record current version so it won't re-show.
+    func dismissChangelog() {
+        showChangelog = false
+        saveSettings()
     }
 
     func saveSettings() {
@@ -1121,7 +1136,8 @@ final class StatusViewModel: ObservableObject {
             "overrideTheme": (overrideTheme ?? "system") as Any,
             "notificationsEnabled": notificationsEnabled ? 1 : 0,
             "notificationSound": notificationSound,
-            "weeklySummaryEnabled": weeklySummaryEnabled ? 1 : 0
+            "weeklySummaryEnabled": weeklySummaryEnabled ? 1 : 0,
+            "lastSeenVersion": currentAppVersion
         ]
         if let data = try? JSONSerialization.data(withJSONObject: dict) {
             try? data.write(to: URL(fileURLWithPath: configPath))

@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var showResetStatsConfirm = false
     @State private var showResetAllConfirm = false
     @State private var onboardingStep: Int = 0
+    @State private var showChangelog = false
 
     var body: some View {
         ZStack {
@@ -31,6 +32,7 @@ struct ContentView: View {
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow).ignoresSafeArea())
                         .onAppear { viewModel.applyTheme() }
             .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0 } }
+            .onChange(of: viewModel.showChangelog) { showing in showChangelog = showing }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -39,6 +41,11 @@ struct ContentView: View {
             Button("") { if !isInputFocused { viewModel.undoRestore(); isInputFocused = true } }.keyboardShortcut("z", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { viewModel.clearChat() }.keyboardShortcut("l", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             Button("") { if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) { viewModel.resumeSession(task: last.task); isInputFocused = true } }.keyboardShortcut("r", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+            // Arrow key navigation for onboarding (only active during tour)
+            if viewModel.showOnboarding {
+                Button("") { if onboardingStep > 0 { withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 } } }.keyboardShortcut(.leftArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+                Button("") { if onboardingStep < onboardingSteps.count - 1 { withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 } } else { viewModel.completeOnboarding() } }.keyboardShortcut(.rightArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+            }
 
             if viewModel.showSettings { settingsOverlay }
             if showCheatsheet { cheatsheetOverlay }
@@ -49,6 +56,7 @@ struct ContentView: View {
             if showResetStatsConfirm { confirmationDialog(title: "Reset stats?", message: "This will wipe all usage data (prompts, responses, sessions, context fill). This cannot be undone.", confirm: { viewModel.resetUsageStats(); showResetStatsConfirm = false }, cancel: { showResetStatsConfirm = false }) }
             if showResetAllConfirm { confirmationDialog(title: "Reset all data?", message: "This will wipe all history, usage stats, and current session data. This cannot be undone.", confirm: { viewModel.resetAllData(); showResetAllConfirm = false }, cancel: { showResetAllConfirm = false }) }
             if viewModel.showOnboarding { onboardingOverlay }
+            if showChangelog { changelogOverlay }
         }
     }
 
@@ -238,6 +246,7 @@ struct ContentView: View {
         let borderGradient = LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
         return ZStack(alignment: spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : .center) {
             Color.black.opacity(0.5).ignoresSafeArea()
+                .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { viewModel.showOnboarding = false } }
 
             // Spotlight border rendered ABOVE the dark overlay
             if spot == 1 {
@@ -398,6 +407,90 @@ struct ContentView: View {
                 .background(RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.08)))
             Text(description).font(.system(size: 11)).foregroundColor(.secondary)
             Spacer()
+        }
+    }
+
+    // MARK: - Changelog overlay
+
+    private let changelogItems: [(version: String, date: String, changes: [String])] = [
+        ("v1.1", "July 2026", [
+            "Guided onboarding tour with spotlight callouts and pointer arrows",
+            "Replay tour anytime from Settings",
+            "Click-to-dismiss or arrow key navigation in the tour"
+        ]),
+        ("v1.0", "July 2026", [
+            "Guided onboarding tour with spotlight callouts",
+            "Live session monitoring with progress tracking",
+            "Chat tab for sending prompts to Codebuff agents",
+            "Stats dashboard with usage metrics and sparkline",
+            "Full session history with search and filters",
+            "Right-click context menu with quick actions",
+            "Keyboard shortcuts for power users (⌘K ⌘R ⌘L ⌘Z ⌘/)",
+            "Dark/light theme toggle",
+            "Weekly summary notifications",
+            "Auto-complete for stale sessions"
+        ])
+    ]
+
+    private var changelogOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4).ignoresSafeArea()
+                .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { viewModel.dismissChangelog() } }
+            VStack(spacing: 0) {
+                HStack {
+                    Image(systemName: "sparkles").font(.system(size: 13)).foregroundColor(.blue)
+                    Text("What's New").font(.system(size: 14, weight: .bold))
+                    Spacer()
+                    Button { withAnimation(.easeInOut(duration: 0.2)) { viewModel.dismissChangelog() } } label: {
+                        Image(systemName: "xmark.circle.fill").font(.system(size: 14)).foregroundColor(.secondary.opacity(0.6))
+                    }.buttonStyle(.plain)
+                }.padding(.horizontal, 20).padding(.vertical, 16)
+
+                Divider().padding(.horizontal, 20)
+
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(changelogItems, id: \.version) { item in
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 6) {
+                                    Text(item.version)
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 8).padding(.vertical, 2)
+                                        .background(RoundedRectangle(cornerRadius: 4).fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
+                                    Text(item.date)
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.secondary)
+                                }
+                                VStack(alignment: .leading, spacing: 4) {
+                                    ForEach(item.changes, id: \.self) { change in
+                                        HStack(alignment: .top, spacing: 6) {
+                                            Circle().fill(Color.blue.opacity(0.5)).frame(width: 4, height: 4).padding(.top, 5)
+                                            Text(change).font(.system(size: 11)).foregroundColor(.primary.opacity(0.85))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }.padding(20)
+                }.frame(maxHeight: 300)
+
+                Divider().padding(.horizontal, 20)
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { viewModel.dismissChangelog() }
+                } label: {
+                    Text("Got it")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.vertical, 8).padding(.horizontal, 32)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
+                }
+                .buttonStyle(.plain)
+                .padding(.vertical, 14)
+            }
+            .frame(width: 380)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.25), radius: 20, y: 4))
         }
     }
 
