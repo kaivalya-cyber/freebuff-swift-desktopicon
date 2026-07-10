@@ -44,8 +44,8 @@ struct ContentView: View {
             Button("") { if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) { viewModel.resumeSession(task: last.task); isInputFocused = true } }.keyboardShortcut("r", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             // Arrow key navigation for onboarding (only active during tour)
             if viewModel.showOnboarding {
-                Button("") { if onboardingStep > 0 { NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 } } }.keyboardShortcut(.leftArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
-                Button("") { if onboardingStep < onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 } } else { viewModel.completeOnboarding() } }.keyboardShortcut(.rightArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+                Button("") { if onboardingStep > 0 { NSSound(named: "Pop")?.play(); NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 } } }.keyboardShortcut(.leftArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+                Button("") { if onboardingStep < onboardingSteps.count - 1 { NSSound(named: "Pop")?.play(); NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 } } else { viewModel.completeOnboarding() } }.keyboardShortcut(.rightArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             }
 
             if viewModel.showSettings { settingsOverlay }
@@ -313,6 +313,7 @@ struct ContentView: View {
                             .fill(i == onboardingStep ? Color.blue : Color.secondary.opacity(0.25))
                             .frame(width: 6, height: 6)
                             .animation(.easeInOut(duration: 0.2), value: onboardingStep)
+                            .help(onboardingSteps[i].title)
                     }
                 }
                 .padding(.top, 12)
@@ -322,11 +323,16 @@ struct ContentView: View {
                     .font(.system(size: 9))
                     .foregroundColor(.secondary.opacity(0.4))
                     .padding(.top, 4)
+                Text("⌘K focus · ⌘R resume · ⌘L clear · ⌘/ shortcuts")
+                    .font(.system(size: 8.5))
+                    .foregroundColor(.secondary.opacity(0.3))
+                    .padding(.top, 1)
 
                 // Navigation
                 HStack(spacing: 0) {
                     if onboardingStep > 0 {
                         Button {
+                            NSSound(named: "Pop")?.play()
                             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                             withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 }
                         } label: {
@@ -342,8 +348,9 @@ struct ContentView: View {
                         Spacer()
                     } else {
                         Button {
+                            NSSound(named: "Pop")?.play()
+                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                             withAnimation(.easeInOut(duration: 0.2)) {
-                                NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                                 viewModel.showOnboarding = false
                             }
                         } label: {
@@ -357,6 +364,7 @@ struct ContentView: View {
                     }
 
                     Button {
+                        NSSound(named: "Pop")?.play()
                         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                         withAnimation(.easeInOut(duration: 0.2)) {
                             if onboardingStep < onboardingSteps.count - 1 {
