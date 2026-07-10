@@ -19,7 +19,7 @@ struct ContentView: View {
     @State private var onboardingStep: Int = 0
 
     /// Current app version for Settings display
-    private var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0" }
+    private var appVersion: String { viewModel.currentAppVersion }
 
     var body: some View {
         ZStack {
@@ -417,6 +417,7 @@ struct ContentView: View {
                     shortcutRow(keys: "⌘R", description: "Resume last session")
                     shortcutRow(keys: "⌘L", description: "Clear chat")
                     shortcutRow(keys: "⌘Z", description: "Restore last sent message")
+                    shortcutRow(keys: "← →", description: "Navigate onboarding tour")
                     shortcutRow(keys: "⌘/", description: "Show this cheatsheet")
                     shortcutRow(keys: "⌘Return", description: "Submit prompt")
                     shortcutRow(keys: "Esc", description: "Close popover / dismiss overlay")

@@ -1118,7 +1118,7 @@ final class StatusViewModel: ObservableObject {
     }
 
     /// Current app version from Info.plist
-    private var currentAppVersion: String {
+    var currentAppVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
 
