@@ -228,6 +228,7 @@ struct ContentView: View {
 
                 VStack(spacing: 10) {
                     shortcutRow(keys: "⌘K", description: "Focus chat input")
+                    shortcutRow(keys: "⌘R", description: "Resume last session")
                     shortcutRow(keys: "⌘Z", description: "Restore last sent message")
                     shortcutRow(keys: "⌘/", description: "Show this cheatsheet")
                     shortcutRow(keys: "⌘Return", description: "Submit prompt")
