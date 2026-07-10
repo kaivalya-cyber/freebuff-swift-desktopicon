@@ -509,6 +509,11 @@ struct ContentView: View {
 
     private var inputSection: some View {
         HStack(spacing: 8) {
+            if !viewModel.messages.isEmpty {
+                Button { viewModel.clearChat() } label: {
+                    Image(systemName: "eraser.line.dashed").font(.system(size: 13)).foregroundColor(.secondary.opacity(0.5))
+                }.buttonStyle(.plain).help("Clear chat")
+            }
             TextField("Type a prompt… (⌘K)", text: $viewModel.inputText).textFieldStyle(.plain).font(.system(size: 12)).focused($isInputFocused).onSubmit { viewModel.submitPrompt() }.padding(.horizontal, 10).padding(.vertical, 6).background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.06)))
             Button { viewModel.submitPrompt() } label: { Image(systemName: "arrow.up.circle.fill").font(.system(size: 22)).foregroundColor(viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .secondary.opacity(0.4) : .blue) }.buttonStyle(.plain).disabled(viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
