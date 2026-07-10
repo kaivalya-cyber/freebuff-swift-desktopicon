@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var onboardingAnimsActive: Bool = false
     @State private var getStartedPulse: Bool = false
     @State private var checkmarkSpring: Bool = false
+    @State private var cardEntrance: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -38,7 +39,7 @@ struct ContentView: View {
             .blur(radius: viewModel.showOnboarding ? 2.5 : 0)
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { cardEntrance = true } } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false; cardEntrance = false } }
             .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false } }
 
             // Keyboard shortcuts (invisible buttons)
@@ -440,6 +441,9 @@ struct ContentView: View {
                 }
             }
             .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
+            .scaleEffect(cardEntrance ? 1.0 : 0.92)
+            .opacity(cardEntrance ? 1.0 : 0.0)
+            .animation(.spring(response: 0.45, dampingFraction: 0.75), value: cardEntrance)
             .id(onboardingStep)
             .padding(spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : [], spot == 1 || spot == 2 || spot == 3 ? 20 : 0)
         }
