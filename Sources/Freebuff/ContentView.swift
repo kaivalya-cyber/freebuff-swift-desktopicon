@@ -51,8 +51,8 @@ struct ContentView: View {
             Button("") { if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) { viewModel.resumeSession(task: last.task); isInputFocused = true } }.keyboardShortcut("r", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             // Arrow key navigation for onboarding (only active during tour)
             if viewModel.showOnboarding {
-                Button("") { if onboardingStep > 0 { NSSound(named: "Pop")?.play(); NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 } } }.keyboardShortcut(.leftArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
-                Button("") { if onboardingStep < onboardingSteps.count - 1 { NSSound(named: "Pop")?.play(); NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 } } else { viewModel.completeOnboarding() } }.keyboardShortcut(.rightArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+                Button("") { navigateOnboarding(by: -1) }.keyboardShortcut(.leftArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+                Button("") { navigateOnboarding(by: 1) }.keyboardShortcut(.rightArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             }
 
             if viewModel.showSettings { settingsOverlay }
@@ -359,9 +359,7 @@ struct ContentView: View {
                 HStack(spacing: 0) {
                     if onboardingStep > 0 {
                         Button {
-                            NSSound(named: "Pop")?.play()
-                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-                            withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 }
+                            navigateOnboarding(by: -1)
                         } label: {
                             HStack(spacing: 3) {
                                 Image(systemName: "chevron.left").font(.system(size: 9, weight: .semibold))
@@ -396,15 +394,7 @@ struct ContentView: View {
                     }
 
                     Button {
-                        NSSound(named: "Pop")?.play()
-                        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            if onboardingStep < onboardingSteps.count - 1 {
-                                onboardingStep += 1
-                            } else {
-                                viewModel.completeOnboarding()
-                            }
-                        }
+                        navigateOnboarding(by: 1)
                     } label: {
                         HStack(spacing: 3) {
                             Text(onboardingStep == onboardingSteps.count - 1 ? "Get Started" : "Next")
@@ -449,16 +439,10 @@ struct ContentView: View {
             .gesture(DragGesture(minimumDistance: 20, coordinateSpace: .local)
                 .onEnded { value in
                     if abs(value.translation.width) > abs(value.translation.height) {
-                        if value.translation.width < -30 && onboardingStep < onboardingSteps.count - 1 {
-                            NSSound(named: "Pop")?.play()
-                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-                            withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 }
-                        } else if value.translation.width < -30 {
-                            viewModel.completeOnboarding()
+                        if value.translation.width < -30 {
+                            navigateOnboarding(by: 1)
                         } else if value.translation.width > 30 && onboardingStep > 0 {
-                            NSSound(named: "Pop")?.play()
-                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-                            withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 }
+                            navigateOnboarding(by: -1)
                         }
                     }
                 }
@@ -591,6 +575,21 @@ struct ContentView: View {
             }
             .frame(width: 380)
             .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.25), radius: 20, y: 4))
+        }
+    }
+
+    // MARK: - Onboarding navigation helper
+
+    private func navigateOnboarding(by delta: Int) {
+        NSSound(named: "Pop")?.play()
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        withAnimation(.easeInOut(duration: 0.2)) {
+            let next = onboardingStep + delta
+            if next >= 0 && next < onboardingSteps.count {
+                onboardingStep = next
+            } else if delta > 0 {
+                viewModel.completeOnboarding()
+            }
         }
     }
 
