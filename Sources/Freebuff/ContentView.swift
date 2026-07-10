@@ -273,6 +273,16 @@ struct ContentView: View {
             Color.black.opacity(0.5).ignoresSafeArea()
                 .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { viewModel.showOnboarding = false } }
 
+            // Vignette gradient to focus attention on the card
+            RadialGradient(
+                colors: [.clear, Color.black.opacity(0.25)],
+                center: .center,
+                startRadius: 160,
+                endRadius: 400
+            )
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+
             // Spotlight flash on step change
             RoundedRectangle(cornerRadius: spot == 3 ? 8 : 10)
                 .fill(Color.white)
