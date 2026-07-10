@@ -89,7 +89,7 @@ final class StatusViewModel: ObservableObject {
             // Separate today's recorded chars from historical to avoid double-counting
             let todayRecorded = (usageStats.dailyEntries[UsageStats.todayKey]?.promptChars ?? 0)
                 + (usageStats.dailyEntries[UsageStats.todayKey]?.responseChars ?? 0)
-            let historicalChars = baseChars - todayRecorded
+            let historicalChars = max(0, baseChars - todayRecorded)
             let todayContribution = max(todayRecorded, estimatedSessionChars)
             chars = historicalChars + todayContribution
         }
