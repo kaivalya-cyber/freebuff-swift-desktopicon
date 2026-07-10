@@ -214,16 +214,38 @@ struct ContentView: View {
 
     // MARK: - Onboarding overlay (guided tour)
 
-    private let onboardingSteps: [(icon: String, title: String, body: String)] = [
-        ("cpu.fill", "Welcome to Freebuff", "Your AI coding companion lives in the menu bar. Let's take a quick tour.\n\nClick Next to get started — or Skip to jump right in."),
-        ("eye.fill", "Monitor Your Agents", "When a Codebuff agent is running, the header turns green with live progress, elapsed time, and estimated completion.\n\nYou'll see your task name and a progress bar update in real-time."),
-        ("bubble.left.and.bubble.right.fill", "Chat & Prompt", "The Chat tab lets you send prompts to Codebuff. Agents respond inline — just type or drop file paths.\n\n⌘K to focus, ⌘R to resume, ⌘L to clear."),
-        ("chart.bar.fill", "Stats & History", "Track your usage across the Stats tab — sessions, credits, context fill, and a 7-day sparkline.\n\nThe History tab saves every completed session so you can resume, review diffs, and measure productivity.")
+    private let onboardingSteps: [(icon: String, title: String, body: String, spot: Int)] = [
+        // spot: 0=center, 1=header, 2=input, 3=tabs
+        ("cpu.fill", "Welcome to Freebuff", "Your AI coding companion lives in the menu bar. Let's take a quick tour.\n\nClick Next to get started — or Skip to jump right in.", 0),
+        ("eye.fill", "Monitor Your Agents", "When a Codebuff agent is running, the header turns green with live progress, elapsed time, and estimated completion.\n\nYou'll see your task name and a progress bar update in real-time.", 1),
+        ("bubble.left.and.bubble.right.fill", "Chat & Prompt", "The Chat tab lets you send prompts to Codebuff. Agents respond inline — just type or drop file paths.\n\n⌘K to focus, ⌘R to resume, ⌘L to clear.", 2),
+        ("chart.bar.fill", "Stats & History", "Track your usage across the Stats tab — sessions, credits, context fill, and a 7-day sparkline.\n\nThe History tab saves every completed session so you can resume, review diffs, and measure productivity.", 3)
     ]
 
     private var onboardingOverlay: some View {
-        ZStack {
+        let spot = onboardingSteps[onboardingStep].spot
+        let borderGradient = LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        return ZStack(alignment: spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : .center) {
             Color.black.opacity(0.5).ignoresSafeArea()
+
+            // Spotlight border rendered ABOVE the dark overlay
+            if spot == 1 {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(borderGradient, lineWidth: 2)
+                    .frame(width: 656, height: 78)
+                    .padding(.top, 8)
+            } else if spot == 2 {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(borderGradient, lineWidth: 2)
+                    .frame(width: 656, height: 42)
+                    .padding(.bottom, 4)
+            } else if spot == 3 {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(borderGradient, lineWidth: 2)
+                    .frame(width: 656, height: 34)
+                    .padding(.top, 20)
+            }
+
             VStack(spacing: 0) {
                 // Hero icon
                 ZStack {
@@ -261,7 +283,6 @@ struct ContentView: View {
 
                 // Navigation
                 HStack(spacing: 0) {
-                    // Back button (hidden on step 0)
                     if onboardingStep > 0 {
                         Button {
                             withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 }
@@ -291,7 +312,6 @@ struct ContentView: View {
                         Spacer()
                     }
 
-                    // Next / Get Started
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             if onboardingStep < onboardingSteps.count - 1 {
@@ -316,7 +336,8 @@ struct ContentView: View {
                 .padding(.horizontal, 24).padding(.top, 16).padding(.bottom, 20)
             }
             .frame(width: 340)
-            .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.25), radius: 20, y: 4))
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.3), radius: 24, y: 6))
+            .padding(spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : [], spot == 1 || spot == 2 || spot == 3 ? 20 : 0)
         }
     }
 
