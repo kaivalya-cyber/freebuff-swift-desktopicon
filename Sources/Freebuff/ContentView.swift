@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var spotlightPulse: Bool = false
     @State private var heroPulse: Bool = false
     @State private var heroWobble: Bool = false
+    @State private var chevronBounce: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -38,7 +39,7 @@ struct ContentView: View {
             .blur(radius: viewModel.showOnboarding ? 2.5 : 0)
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true; chevronBounce = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false; chevronBounce = false } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -409,6 +410,8 @@ struct ContentView: View {
                                 .font(.system(size: 12, weight: .semibold))
                             Image(systemName: onboardingStep == onboardingSteps.count - 1 ? "checkmark" : "chevron.right")
                                 .font(.system(size: 9, weight: .semibold))
+                                .offset(x: onboardingStep < onboardingSteps.count - 1 && chevronBounce ? 3 : 0)
+                                .animation(onboardingStep < onboardingSteps.count - 1 ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true) : .default, value: chevronBounce)
                         }
                         .foregroundColor(.white)
                         .padding(.vertical, 8).padding(.horizontal, 18)
