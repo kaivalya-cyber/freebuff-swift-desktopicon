@@ -419,7 +419,7 @@ struct ContentView: View {
                     }
 
                     Button {
-                        if onboardingStep == onboardingSteps.count - 1 { completeSparkles = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { completeSparkles = false } }
+                        if onboardingStep == onboardingSteps.count - 1 { completeSparkles = true }
                         navigateOnboarding(by: 1)
                     } label: {
                         HStack(spacing: 3) {
@@ -490,11 +490,11 @@ struct ContentView: View {
                             .fill([Color.blue, .purple, .pink, .cyan][i % 4].opacity(0.6))
                             .frame(width: 5, height: 5)
                             .offset(x: completeSparkles ? dx : 0, y: completeSparkles ? dy : 0)
-                            .scaleEffect(completeSparkles ? 0.1 : 1.0)
+                            .scaleEffect(completeSparkles ? 0.01 : 0.4)
                             .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(Double(i) * 0.03), value: completeSparkles)
                     }
                 }
-                .opacity(completeSparkles ? 0 : 1)
+                .opacity(completeSparkles ? 1 : 0)
                 .animation(.easeOut(duration: 0.3), value: completeSparkles)
             }
             .gesture(DragGesture(minimumDistance: 20, coordinateSpace: .local)
