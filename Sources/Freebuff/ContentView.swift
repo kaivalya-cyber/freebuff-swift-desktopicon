@@ -22,6 +22,7 @@ struct ContentView: View {
     @State private var checkmarkSpring: Bool = false
     @State private var cardEntrance: Bool = false
     @State private var spotlightFlash: Bool = false
+    @State private var stepLabelBounce: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -41,7 +42,7 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
             .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { cardEntrance = true } } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false; cardEntrance = false } }
-            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false }; spotlightFlash = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { spotlightFlash = false } }
+            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false }; spotlightFlash = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { spotlightFlash = false }; stepLabelBounce = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { stepLabelBounce = false } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -337,7 +338,9 @@ struct ContentView: View {
                 // Step progress indicator
                 Text("Step \(onboardingStep + 1) of \(onboardingSteps.count)")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.secondary.opacity(0.5))
+                    .foregroundColor(.secondary.opacity(stepLabelBounce ? 0.8 : 0.5))
+                    .scaleEffect(stepLabelBounce ? 1.15 : 1.0)
+                    .animation(.spring(response: 0.25, dampingFraction: 0.5), value: stepLabelBounce)
                     .padding(.top, 14)
 
                 // Step dots
