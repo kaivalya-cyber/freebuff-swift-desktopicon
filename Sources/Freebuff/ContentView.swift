@@ -581,10 +581,11 @@ struct ContentView: View {
     // MARK: - Onboarding navigation helper
 
     private func navigateOnboarding(by delta: Int) {
+        let next = onboardingStep + delta
+        if next < 0 && delta < 0 { return }
         NSSound(named: "Pop")?.play()
         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         withAnimation(.easeInOut(duration: 0.2)) {
-            let next = onboardingStep + delta
             if next >= 0 && next < onboardingSteps.count {
                 onboardingStep = next
             } else if delta > 0 {
