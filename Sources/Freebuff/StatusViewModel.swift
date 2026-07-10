@@ -73,6 +73,28 @@ final class StatusViewModel: ObservableObject {
         return formatDuration(total)
     }
 
+    /// Live context fill percentage that includes estimated chars from the
+    /// currently running session, so the bar fills up in real-time.
+    var liveContextFillPercent: Double {
+        var chars = usageStats.totalPromptChars + usageStats.totalResponseChars
+        if let s = currentStatus, s.isRunning, let start = s.startedDate {
+            let elapsed = Date().timeIntervalSince(start)
+            // Same estimation as recordCompletedSession
+            chars += max(200, Int(elapsed) * 5) + max(500, Int(elapsed) * 15)
+        }
+        let tokens = Double(chars) / 4.0
+        return min(100.0, (tokens / Double(max(1, contextWindowTokens))) * 100.0)
+    }
+
+    /// Live estimated credits that include the currently running session.
+    var liveCreditsString: String {
+        var prompts = usageStats.totalPrompts
+        if currentStatus?.isRunning == true { prompts += 1 }
+        let credits = Double(prompts) * 0.001
+        if credits < 0.01 { return "<$0.01" }
+        return String(format: "$%.2f", credits)
+    }
+
     // MARK: - File paths
 
     private let freebuffDir: String = {
@@ -879,15 +901,30 @@ final class StatusViewModel: ObservableObject {
     }
 
     /// Increment session count and add session duration.
-    /// Also records at least 1 prompt + 1 response so each completed session
-    /// shows meaningful usage, even for CLI sessions where prompt/response
-    /// files aren't written.
+    /// Ensures minimum char counts per day so context fill shows meaningful
+    /// numbers even for CLI sessions that don't write prompt.json/response.json.
+    /// Does NOT increment prompt/response counters — those are tracked
+    /// individually by loadStatus/submitPrompt/loadResponse.
     private func recordCompletedSession(durationSeconds: TimeInterval) {
         var stats = loadOrCreateUsage()
         stats.recordSession(durationSeconds: durationSeconds)
-        // Always count at least 1 prompt for each completed session
-        stats.recordPrompt(charCount: 0)
-        stats.recordResponse(charCount: 0)
+        // Ensure minimum char counts for today's daily entry.
+        // ~5 prompt chars/sec + ~15 response chars/sec.
+        let minPromptChars = max(200, Int(durationSeconds) * 5)
+        let minResponseChars = max(500, Int(durationSeconds) * 15)
+        let todayKey = UsageStats.todayKey
+        var today = stats.dailyEntries[todayKey] ?? DailyUsage()
+        if today.promptChars < minPromptChars {
+            let delta = minPromptChars - today.promptChars
+            stats.totalPromptChars += delta
+            today.promptChars = minPromptChars
+        }
+        if today.responseChars < minResponseChars {
+            let delta = minResponseChars - today.responseChars
+            stats.totalResponseChars += delta
+            today.responseChars = minResponseChars
+        }
+        stats.dailyEntries[todayKey] = today
         stats.pruneOldEntries()
         saveUsage(stats)
     }

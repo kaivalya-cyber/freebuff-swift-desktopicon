@@ -287,16 +287,16 @@ struct ContentView: View {
                 statsRow(label: "Sessions", value: "\(viewModel.usageStats.totalSessions)"); statsRow(label: "Total time", value: viewModel.liveTotalTimeString); statsRow(label: "Today", value: "\(viewModel.usageStats.todaySessions) sessions")
             }
             statsCard(icon: "flame.fill", iconColor: .orange, title: "API Credits Burnt") {
-                statsRow(label: "Estimated cost", value: viewModel.usageStats.creditsString); statsRow(label: "This month", value: viewModel.usageStats.thisMonthCreditsString); statsRow(label: "Prompts", value: "\(viewModel.usageStats.totalPrompts)"); statsRow(label: "Responses", value: "\(viewModel.usageStats.totalResponses)"); statsRow(label: "Today", value: "\(viewModel.usageStats.todayPrompts) prompts")
+                statsRow(label: "Estimated cost", value: viewModel.liveCreditsString); statsRow(label: "This month", value: viewModel.usageStats.thisMonthCreditsString); statsRow(label: "Prompts", value: "\(viewModel.usageStats.totalPrompts)"); statsRow(label: "Responses", value: "\(viewModel.usageStats.totalResponses)"); statsRow(label: "Today", value: "\(viewModel.usageStats.todayPrompts) prompts")
             }
             statsCard(icon: "rectangle.stack.fill", iconColor: .purple, title: "Context Filled Up") { contextFillContent }
         }
     }
 
     private var contextFillContent: some View {
-        let window = viewModel.contextWindowTokens; let fillPct = viewModel.usageStats.contextFillPercent(windowTokens: window)
+        let window = viewModel.contextWindowTokens; let fillPct = viewModel.liveContextFillPercent
         return VStack(alignment: .leading, spacing: 6) {
-            HStack { Text(viewModel.usageStats.contextFillLabel(windowTokens: window)).font(.system(size: 15, weight: .bold)); Text("of \(window / 1000)K").font(.system(size: 11)).foregroundColor(.secondary) }
+            HStack { Text(fillPct < 1 ? "<1%" : String(format: "%.0f%%", fillPct)).font(.system(size: 15, weight: .bold)); Text("of \(window / 1000)K").font(.system(size: 11)).foregroundColor(.secondary) }
             GeometryReader { geo in ZStack(alignment: .leading) { RoundedRectangle(cornerRadius: 3).fill(Color.secondary.opacity(0.15)).frame(height: 10); RoundedRectangle(cornerRadius: 3).fill(LinearGradient(colors: contextFillGradient, startPoint: .leading, endPoint: .trailing)).frame(width: max(6, geo.size.width * CGFloat(fillPct / 100.0)), height: 10).animation(.easeInOut(duration: 0.5), value: fillPct) } }.frame(height: 10)
             Text("~\(viewModel.usageStats.estimatedTokens) tokens").font(.system(size: 10)).foregroundColor(.secondary)
         }
@@ -431,7 +431,7 @@ struct ContentView: View {
         guard let date = UsageStats.dateKeyFormatter.date(from: dateKey) else { return dateKey }
         if Calendar.current.isDateInToday(date) { return "Today" }; if Calendar.current.isDateInYesterday(date) { return "Yesterday" }; return UsageStats.weekdayFormatter.string(from: date)
     }
-    private var contextFillGradient: [Color] { let pct = viewModel.usageStats.contextFillPercent(windowTokens: viewModel.contextWindowTokens); if pct < 50 { return [.green, .green.opacity(0.7)] } else if pct < 80 { return [.yellow, .orange] } else { return [.orange, .red] } }
+    private var contextFillGradient: [Color] { let pct = viewModel.liveContextFillPercent; if pct < 50 { return [.green, .green.opacity(0.7)] } else if pct < 80 { return [.yellow, .orange] } else { return [.orange, .red] } }
     private func statsCard<Content: View>(icon: String, iconColor: Color, title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) { HStack(spacing: 6) { Image(systemName: icon).font(.system(size: 11, weight: .semibold)).foregroundColor(iconColor).frame(width: 20, height: 20).background(RoundedRectangle(cornerRadius: 5).fill(iconColor.opacity(0.12))); Text(title).font(.system(size: 11, weight: .semibold)).foregroundColor(.secondary) }; VStack(spacing: 4) { content() } }.padding(12).background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.04)))
     }
