@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var onboardingStep: Int = 0
     @State private var spotlightPulse: Bool = false
     @State private var heroPulse: Bool = false
+    @State private var heroWobble: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -35,7 +36,7 @@ struct ContentView: View {
             .frame(width: 680)
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow).ignoresSafeArea())
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true } else { spotlightPulse = false; heroPulse = false } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -296,9 +297,13 @@ struct ContentView: View {
                     Circle()
                         .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
                         .frame(width: 56, height: 56)
+                        .rotationEffect(.degrees(heroWobble ? 4 : -4))
+                        .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: heroWobble)
                     Image(systemName: onboardingSteps[onboardingStep].icon)
                         .font(.system(size: onboardingStep == 0 ? 24 : 22))
                         .foregroundColor(.white)
+                        .rotationEffect(.degrees(heroWobble ? -4 : 4))
+                        .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: heroWobble)
                 }
                 .scaleEffect(heroPulse ? 1.06 : 1.0)
                 .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: heroPulse)
