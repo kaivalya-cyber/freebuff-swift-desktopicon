@@ -17,7 +17,9 @@ struct ContentView: View {
     @State private var showResetStatsConfirm = false
     @State private var showResetAllConfirm = false
     @State private var onboardingStep: Int = 0
-    @State private var showChangelog = false
+
+    /// Current app version for Settings display
+    private var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0" }
 
     var body: some View {
         ZStack {
@@ -32,7 +34,6 @@ struct ContentView: View {
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow).ignoresSafeArea())
                         .onAppear { viewModel.applyTheme() }
             .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0 } }
-            .onChange(of: viewModel.showChangelog) { showing in showChangelog = showing }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -43,8 +44,8 @@ struct ContentView: View {
             Button("") { if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) { viewModel.resumeSession(task: last.task); isInputFocused = true } }.keyboardShortcut("r", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             // Arrow key navigation for onboarding (only active during tour)
             if viewModel.showOnboarding {
-                Button("") { if onboardingStep > 0 { withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 } } }.keyboardShortcut(.leftArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
-                Button("") { if onboardingStep < onboardingSteps.count - 1 { withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 } } else { viewModel.completeOnboarding() } }.keyboardShortcut(.rightArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+                Button("") { if onboardingStep > 0 { NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 } } }.keyboardShortcut(.leftArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
+                Button("") { if onboardingStep < onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now); withAnimation(.easeInOut(duration: 0.2)) { onboardingStep += 1 } } else { viewModel.completeOnboarding() } }.keyboardShortcut(.rightArrow).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
             }
 
             if viewModel.showSettings { settingsOverlay }
@@ -56,7 +57,7 @@ struct ContentView: View {
             if showResetStatsConfirm { confirmationDialog(title: "Reset stats?", message: "This will wipe all usage data (prompts, responses, sessions, context fill). This cannot be undone.", confirm: { viewModel.resetUsageStats(); showResetStatsConfirm = false }, cancel: { showResetStatsConfirm = false }) }
             if showResetAllConfirm { confirmationDialog(title: "Reset all data?", message: "This will wipe all history, usage stats, and current session data. This cannot be undone.", confirm: { viewModel.resetAllData(); showResetAllConfirm = false }, cancel: { showResetAllConfirm = false }) }
             if viewModel.showOnboarding { onboardingOverlay }
-            if showChangelog { changelogOverlay }
+            if viewModel.showChangelog { changelogOverlay }
         }
     }
 
@@ -234,6 +235,12 @@ struct ContentView: View {
                             .background(RoundedRectangle(cornerRadius: 6).fill(Color.purple.opacity(0.08)))
                     }.buttonStyle(.plain)
                 }.padding(16)
+
+                // Version footer
+                Text("Freebuff \(appVersion)")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary.opacity(0.3))
+                    .padding(.bottom, 10)
             }
             .frame(width: 300)
             .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.2), radius: 12, y: 2))
@@ -320,6 +327,7 @@ struct ContentView: View {
                 HStack(spacing: 0) {
                     if onboardingStep > 0 {
                         Button {
+                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                             withAnimation(.easeInOut(duration: 0.2)) { onboardingStep -= 1 }
                         } label: {
                             HStack(spacing: 3) {
@@ -335,6 +343,7 @@ struct ContentView: View {
                     } else {
                         Button {
                             withAnimation(.easeInOut(duration: 0.2)) {
+                                NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                                 viewModel.showOnboarding = false
                             }
                         } label: {
@@ -348,6 +357,7 @@ struct ContentView: View {
                     }
 
                     Button {
+                        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                         withAnimation(.easeInOut(duration: 0.2)) {
                             if onboardingStep < onboardingSteps.count - 1 {
                                 onboardingStep += 1
