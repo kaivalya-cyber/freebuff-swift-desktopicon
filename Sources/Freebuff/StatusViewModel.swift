@@ -77,8 +77,8 @@ final class StatusViewModel: ObservableObject {
 
     /// Live context fill percentage that includes estimated chars from the
     /// currently running session, so the bar fills up in real-time.
-    /// Uses max(base, estimate) to prevent the bar from shrinking when a
-    /// session completes.
+    /// Reconciles today's recorded chars with the session estimate to prevent
+    /// the bar from shrinking when a session completes.
     var liveContextFillPercent: Double {
         let baseChars = usageStats.totalPromptChars + usageStats.totalResponseChars
         var chars = baseChars
@@ -86,8 +86,12 @@ final class StatusViewModel: ObservableObject {
             let elapsed = Date().timeIntervalSince(start)
             // Mirror recordCompletedSession's minimum allocation
             let estimatedSessionChars = max(200, Int(elapsed) * 5) + max(500, Int(elapsed) * 15)
-            // Use max so the bar never shrinks before recordCompletedSession fills in deltas
-            chars = max(baseChars, estimatedSessionChars)
+            // Separate today's recorded chars from historical to avoid double-counting
+            let todayRecorded = (usageStats.dailyEntries[UsageStats.todayKey]?.promptChars ?? 0)
+                + (usageStats.dailyEntries[UsageStats.todayKey]?.responseChars ?? 0)
+            let historicalChars = baseChars - todayRecorded
+            let todayContribution = max(todayRecorded, estimatedSessionChars)
+            chars = historicalChars + todayContribution
         }
         let tokens = Double(chars) / 4.0
         return min(100.0, (tokens / Double(max(1, contextWindowTokens))) * 100.0)
