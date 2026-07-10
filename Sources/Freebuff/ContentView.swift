@@ -481,21 +481,21 @@ struct ContentView: View {
             .padding(spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : [], spot == 1 || spot == 2 || spot == 3 ? 20 : 0)
             // Sparkle burst on completion
             .overlay {
-                if completeSparkles {
-                    ZStack {
-                        ForEach(0..<8, id: \.self) { i in
-                            let angle = Double(i) / 8 * .pi * 2
-                            let dx = cos(angle) * 60
-                            let dy = sin(angle) * 60
-                            Circle()
-                                .fill([Color.blue, .purple, .pink, .cyan][i % 4].opacity(0.6))
-                                .frame(width: 5, height: 5)
-                                .offset(x: completeSparkles ? dx : 0, y: completeSparkles ? dy : 0)
-                                .opacity(completeSparkles ? 0 : 1)
-                                .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(Double(i) * 0.03), value: completeSparkles)
-                        }
+                ZStack {
+                    ForEach(0..<8, id: \.self) { i in
+                        let angle = Double(i) / 8 * .pi * 2
+                        let dx = cos(angle) * 60
+                        let dy = sin(angle) * 60
+                        Circle()
+                            .fill([Color.blue, .purple, .pink, .cyan][i % 4].opacity(0.6))
+                            .frame(width: 5, height: 5)
+                            .offset(x: completeSparkles ? dx : 0, y: completeSparkles ? dy : 0)
+                            .scaleEffect(completeSparkles ? 0.1 : 1.0)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(Double(i) * 0.03), value: completeSparkles)
                     }
                 }
+                .opacity(completeSparkles ? 0 : 1)
+                .animation(.easeOut(duration: 0.3), value: completeSparkles)
             }
             .gesture(DragGesture(minimumDistance: 20, coordinateSpace: .local)
                 .onEnded { value in
