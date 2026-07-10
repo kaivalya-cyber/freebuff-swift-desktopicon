@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var heroPulse: Bool = false
     @State private var heroWobble: Bool = false
     @State private var chevronBounce: Bool = false
+    @State private var getStartedPulse: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -39,7 +40,8 @@ struct ContentView: View {
             .blur(radius: viewModel.showOnboarding ? 2.5 : 0)
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true; chevronBounce = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false; chevronBounce = false } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true; chevronBounce = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false; chevronBounce = false; getStartedPulse = false } }
+            .onChange(of: onboardingStep) { step in if step == onboardingSteps.count - 1 { getStartedPulse = true } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -416,6 +418,9 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .padding(.vertical, 8).padding(.horizontal, 18)
                         .background(RoundedRectangle(cornerRadius: 6).fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
+                        .scaleEffect(onboardingStep == onboardingSteps.count - 1 && getStartedPulse ? 1.06 : 1.0)
+                        .shadow(color: onboardingStep == onboardingSteps.count - 1 && getStartedPulse ? Color.purple.opacity(0.5) : .clear, radius: onboardingStep == onboardingSteps.count - 1 && getStartedPulse ? 8 : 0)
+                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: getStartedPulse)
                     }
                     .buttonStyle(.plain)
                 }
