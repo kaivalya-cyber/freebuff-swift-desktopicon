@@ -17,12 +17,8 @@ struct ContentView: View {
     @State private var showResetStatsConfirm = false
     @State private var showResetAllConfirm = false
     @State private var onboardingStep: Int = 0
-    @State private var spotlightPulse: Bool = false
-    @State private var heroPulse: Bool = false
-    @State private var heroWobble: Bool = false
-    @State private var chevronBounce: Bool = false
+    @State private var onboardingAnimsActive: Bool = false
     @State private var getStartedPulse: Bool = false
-    @State private var cardGlow: Bool = false
     @State private var checkmarkSpring: Bool = false
 
     /// Current app version for Settings display
@@ -42,7 +38,7 @@ struct ContentView: View {
             .blur(radius: viewModel.showOnboarding ? 2.5 : 0)
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true; heroPulse = true; heroWobble = true; chevronBounce = true; cardGlow = true } else { spotlightPulse = false; heroPulse = false; heroWobble = false; chevronBounce = false; getStartedPulse = false; cardGlow = false; checkmarkSpring = false } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false } }
             .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false } }
 
             // Keyboard shortcuts (invisible buttons)
@@ -280,22 +276,22 @@ struct ContentView: View {
                     .stroke(borderGradient, lineWidth: 2)
                     .frame(width: 656, height: 78)
                     .padding(.top, 8)
-                    .opacity(spotlightPulse ? 1.0 : 0.55)
-                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: spotlightPulse)
+                    .opacity(onboardingAnimsActive ? 1.0 : 0.55)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: onboardingAnimsActive)
             } else if spot == 2 {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(borderGradient, lineWidth: 2)
                     .frame(width: 656, height: 42)
                     .padding(.bottom, 4)
-                    .opacity(spotlightPulse ? 1.0 : 0.55)
-                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: spotlightPulse)
+                    .opacity(onboardingAnimsActive ? 1.0 : 0.55)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: onboardingAnimsActive)
             } else if spot == 3 {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(borderGradient, lineWidth: 2)
                     .frame(width: 656, height: 34)
                     .padding(.top, 20)
-                    .opacity(spotlightPulse ? 1.0 : 0.55)
-                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: spotlightPulse)
+                    .opacity(onboardingAnimsActive ? 1.0 : 0.55)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: onboardingAnimsActive)
             }
 
             VStack(spacing: 0) {
@@ -304,16 +300,16 @@ struct ContentView: View {
                     Circle()
                         .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
                         .frame(width: 56, height: 56)
-                        .rotationEffect(.degrees(heroWobble ? 4 : -4))
-                        .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: heroWobble)
+                        .rotationEffect(.degrees(onboardingAnimsActive ? 4 : -4))
+                        .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: onboardingAnimsActive)
                     Image(systemName: onboardingSteps[onboardingStep].icon)
                         .font(.system(size: onboardingStep == 0 ? 24 : 22))
                         .foregroundColor(.white)
-                        .rotationEffect(.degrees(heroWobble ? -4 : 4))
-                        .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: heroWobble)
+                        .rotationEffect(.degrees(onboardingAnimsActive ? -4 : 4))
+                        .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: onboardingAnimsActive)
                 }
-                .scaleEffect(heroPulse ? 1.06 : 1.0)
-                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: heroPulse)
+                .scaleEffect(onboardingAnimsActive ? 1.06 : 1.0)
+                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: onboardingAnimsActive)
                 .padding(.top, 24)
 
                 Text(onboardingSteps[onboardingStep].title)
@@ -416,8 +412,8 @@ struct ContentView: View {
                                 .font(.system(size: 9, weight: .semibold))
                                 .scaleEffect(onboardingStep == onboardingSteps.count - 1 ? (checkmarkSpring ? 1.0 : 0.01) : 1.0)
                                 .animation(onboardingStep == onboardingSteps.count - 1 ? .spring(response: 0.4, dampingFraction: 0.6) : .default, value: checkmarkSpring)
-                                .offset(x: onboardingStep < onboardingSteps.count - 1 && chevronBounce ? 3 : 0)
-                                .animation(onboardingStep < onboardingSteps.count - 1 ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true) : .default, value: chevronBounce)
+                                .offset(x: onboardingStep < onboardingSteps.count - 1 && onboardingAnimsActive ? 3 : 0)
+                                .animation(onboardingStep < onboardingSteps.count - 1 ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true) : .default, value: onboardingAnimsActive)
                         }
                         .foregroundColor(.white)
                         .padding(.vertical, 8).padding(.horizontal, 18)
@@ -434,8 +430,8 @@ struct ContentView: View {
             .background(RoundedRectangle(cornerRadius: 16).fill(Color(nsColor: .windowBackgroundColor)).shadow(color: .black.opacity(0.3), radius: 24, y: 6))
             .overlay(RoundedRectangle(cornerRadius: 16)
                 .stroke(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.5)
-                .opacity(cardGlow ? 0.5 : 0.1)
-                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: cardGlow)
+                .opacity(onboardingAnimsActive ? 0.5 : 0.1)
+                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: onboardingAnimsActive)
             )
             .overlay(alignment: spot == 1 || spot == 3 ? .top : .bottom) {
                 if spot == 1 || spot == 2 || spot == 3 {
