@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var cardEntrance: Bool = false
     @State private var spotlightFlash: Bool = false
     @State private var stepLabelBounce: Bool = false
+    @State private var bodyTextPulse: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -42,7 +43,7 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.3), value: viewModel.showOnboarding)
                         .onAppear { viewModel.applyTheme() }
             .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; onboardingAnimsActive = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { cardEntrance = true } } else { onboardingAnimsActive = false; getStartedPulse = false; checkmarkSpring = false; cardEntrance = false } }
-            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false }; spotlightFlash = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { spotlightFlash = false }; stepLabelBounce = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { stepLabelBounce = false } }
+            .onChange(of: onboardingStep) { step in getStartedPulse = step == onboardingSteps.count - 1; if step == onboardingSteps.count - 1 { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { checkmarkSpring = true } } else { checkmarkSpring = false }; spotlightFlash = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { spotlightFlash = false }; stepLabelBounce = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { stepLabelBounce = false }; bodyTextPulse = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { bodyTextPulse = false } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -339,11 +340,12 @@ struct ContentView: View {
 
                 Text(onboardingSteps[onboardingStep].body)
                     .font(.system(size: 11.5))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondary.opacity(bodyTextPulse ? 0.9 : 0.7))
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
                     .padding(.horizontal, 24)
                     .padding(.top, 8)
+                    .animation(.easeOut(duration: 0.25), value: bodyTextPulse)
 
                 // Step progress indicator
                 Text("Step \(onboardingStep + 1) of \(onboardingSteps.count)")
