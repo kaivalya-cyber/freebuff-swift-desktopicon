@@ -224,6 +224,15 @@ struct ContentView: View {
                             .foregroundColor(.blue.opacity(0.8)).padding(.vertical, 6).frame(maxWidth: .infinity)
                             .background(RoundedRectangle(cornerRadius: 6).fill(Color.blue.opacity(0.08)))
                     }.buttonStyle(.plain)
+
+                    Button {
+                        viewModel.showSettings = false
+                        viewModel.showChangelog = true
+                    } label: {
+                        HStack(spacing: 4) { Image(systemName: "sparkles").font(.system(size: 10)); Text("What's New").font(.system(size: 11)) }
+                            .foregroundColor(.purple.opacity(0.8)).padding(.vertical, 6).frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.purple.opacity(0.08)))
+                    }.buttonStyle(.plain)
                 }.padding(16)
             }
             .frame(width: 300)
@@ -299,7 +308,13 @@ struct ContentView: View {
                             .animation(.easeInOut(duration: 0.2), value: onboardingStep)
                     }
                 }
-                .padding(.top, 16)
+                .padding(.top, 12)
+
+                // Arrow key hint
+                Text("← → arrow keys to navigate")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary.opacity(0.4))
+                    .padding(.top, 4)
 
                 // Navigation
                 HStack(spacing: 0) {
@@ -363,6 +378,8 @@ struct ContentView: View {
                         .offset(y: spot == 2 ? 8 : -8)
                 }
             }
+            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
+            .id(onboardingStep)
             .padding(spot == 1 || spot == 3 ? .top : spot == 2 ? .bottom : [], spot == 1 || spot == 2 || spot == 3 ? 20 : 0)
         }
     }
