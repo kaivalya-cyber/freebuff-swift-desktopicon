@@ -467,7 +467,31 @@ struct ContentView: View {
     private var idleHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) { Circle().fill(Color.secondary.opacity(0.5)).frame(width: 7, height: 7); Text(viewModel.statusText == "Done" ? "Done" : "Idle").font(.system(size: 11, weight: .semibold)).foregroundColor(.secondary) }
-            if viewModel.statusText == "Done" { Text(viewModel.currentStatus?.task ?? "Task completed").font(.system(size: 13, weight: .semibold)).foregroundColor(.primary).lineLimit(1) } else { Text("No active session").font(.system(size: 13, weight: .semibold)).foregroundColor(.primary); Text("Waiting for agent to start…").font(.system(size: 11)).foregroundColor(.secondary) }
+            if viewModel.statusText == "Done" {
+                Text(viewModel.currentStatus?.task ?? "Task completed").font(.system(size: 13, weight: .semibold)).foregroundColor(.primary).lineLimit(1)
+            } else if let last = viewModel.fullHistory.first(where: { $0.status == "completed" }) {
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("No active session").font(.system(size: 13, weight: .semibold)).foregroundColor(.primary)
+                        Text("Waiting for agent to start…").font(.system(size: 11)).foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button {
+                        viewModel.resumeSession(task: last.task)
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.clockwise").font(.system(size: 9, weight: .semibold))
+                            Text("Resume").font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundColor(.blue)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(RoundedRectangle(cornerRadius: 5).fill(Color.blue.opacity(0.1)))
+                    }
+                    .buttonStyle(.plain)
+                }
+            } else {
+                Text("No active session").font(.system(size: 13, weight: .semibold)).foregroundColor(.primary); Text("Waiting for agent to start…").font(.system(size: 11)).foregroundColor(.secondary)
+            }
         }
     }
 
