@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var showResetStatsConfirm = false
     @State private var showResetAllConfirm = false
     @State private var onboardingStep: Int = 0
+    @State private var spotlightPulse: Bool = false
 
     /// Current app version for Settings display
     private var appVersion: String { viewModel.currentAppVersion }
@@ -33,7 +34,7 @@ struct ContentView: View {
             .frame(width: 680)
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow).ignoresSafeArea())
                         .onAppear { viewModel.applyTheme() }
-            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0 } }
+            .onChange(of: viewModel.showOnboarding) { showing in if showing { onboardingStep = 0; spotlightPulse = true } }
 
             // Keyboard shortcuts (invisible buttons)
             Button("") { isInputFocused = true }.keyboardShortcut("k", modifiers: .command).frame(width: 0, height: 0).opacity(0).allowsHitTesting(false)
@@ -264,22 +265,28 @@ struct ContentView: View {
             Color.black.opacity(0.5).ignoresSafeArea()
                 .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { viewModel.showOnboarding = false } }
 
-            // Spotlight border rendered ABOVE the dark overlay
+            // Spotlight border rendered ABOVE the dark overlay (pulsing glow)
             if spot == 1 {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(borderGradient, lineWidth: 2)
                     .frame(width: 656, height: 78)
                     .padding(.top, 8)
+                    .opacity(spotlightPulse ? 1.0 : 0.55)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: spotlightPulse)
             } else if spot == 2 {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(borderGradient, lineWidth: 2)
                     .frame(width: 656, height: 42)
                     .padding(.bottom, 4)
+                    .opacity(spotlightPulse ? 1.0 : 0.55)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: spotlightPulse)
             } else if spot == 3 {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(borderGradient, lineWidth: 2)
                     .frame(width: 656, height: 34)
                     .padding(.top, 20)
+                    .opacity(spotlightPulse ? 1.0 : 0.55)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: spotlightPulse)
             }
 
             VStack(spacing: 0) {
