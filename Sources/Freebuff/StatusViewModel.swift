@@ -416,9 +416,9 @@ final class StatusViewModel: ObservableObject {
             isStale = false
         }
 
-        // Track new CLI-driven sessions: if task changed to a new running session,
-        // count as a prompt so usage stats reflect CLI usage, not just app-UI usage.
-        if status.isRunning, status.task != lastSeenTask, lastSeenTask != nil {
+        // Track new CLI-driven sessions: if task changed (including from nil after
+        // a prior completion), count as a prompt so usage stats reflect CLI usage.
+        if status.isRunning, status.task != lastSeenTask {
             incrementUsagePrompts(charCount: status.task.count)
         }
         if status.isRunning {
